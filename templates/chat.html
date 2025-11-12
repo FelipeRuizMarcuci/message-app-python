@@ -288,6 +288,14 @@
           socket.emit("stop_typing", { receiver_id: currentUser });
         });
 
+        // Enviar mensagem ao pressionar Enter
+        input.addEventListener("keypress", (e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            sendBtn.click(); // Simula o clique no botão "Enviar"
+          }
+        });
+
         input.addEventListener("input", () => {
           if (!currentUser) return;
           socket.emit("typing", { receiver_id: currentUser });
@@ -327,53 +335,52 @@
           if (currentUser && senderId === Number(currentUser)) {
             hideTyping();
           }
+        });
+        socket.on("user_joined", (user) => {
+          const existing = document.querySelector(`[data-id="${user.id}"]`);
+          if (existing) return; // Evita duplicados
 
-          socket.on("user_joined", (user) => {
-            const existing = document.querySelector(`[data-id="${user.id}"]`);
-            if (existing) return; // Evita duplicados
-
-            const ul = document.querySelector(".contact-list");
-            const li = document.createElement("li");
-            li.innerHTML = `
+          const ul = document.querySelector(".contact-list");
+          const li = document.createElement("li");
+          li.innerHTML = `
     <a href="#" class="user-link" data-id="${user.id}" data-name="${user.username}">
       <span>${user.username}</span>
       <span id="badge_${user.id}" class="badge"></span>
     </a>
   `;
-            ul.appendChild(li);
+          ul.appendChild(li);
 
-            // Reaplica o evento de clique para o novo usuário
-            li.querySelector(".user-link").addEventListener(
-              "click",
-              async (e) => {
-                e.preventDefault();
-                currentUser = parseInt(user.id);
-                currentUserName = user.username;
-                chatHeader.textContent = "💬 " + currentUserName;
-                input.disabled = false;
-                sendBtn.disabled = false;
-                messagesDiv.innerHTML = "";
+          // Reaplica o evento de clique para o novo usuário
+          li.querySelector(".user-link").addEventListener(
+            "click",
+            async (e) => {
+              e.preventDefault();
+              currentUser = parseInt(user.id);
+              currentUserName = user.username;
+              chatHeader.textContent = "💬 " + currentUserName;
+              input.disabled = false;
+              sendBtn.disabled = false;
+              messagesDiv.innerHTML = "";
 
-                const res = await fetch(`/messages/${currentUser}`);
-                const msgs = await res.json();
+              const res = await fetch(`/messages/${currentUser}`);
+              const msgs = await res.json();
 
-                msgs.forEach((m) => {
-                  const sender_id = m.sender_id ?? m[0];
-                  const text = m.text ?? m[1];
-                  const div = document.createElement("div");
-                  div.classList.add("message");
-                  div.classList.add(sender_id == userId ? "you" : "other");
-                  div.textContent = text;
-                  messagesDiv.appendChild(div);
-                });
+              msgs.forEach((m) => {
+                const sender_id = m.sender_id ?? m[0];
+                const text = m.text ?? m[1];
+                const div = document.createElement("div");
+                div.classList.add("message");
+                div.classList.add(sender_id == userId ? "you" : "other");
+                div.textContent = text;
+                messagesDiv.appendChild(div);
+              });
 
-                scrollMessages();
-                socket.emit("mark_as_read", { sender_id: currentUser });
-                loadUnread();
-                hideTyping();
-              }
-            );
-          });
+              scrollMessages();
+              socket.emit("mark_as_read", { sender_id: currentUser });
+              loadUnread();
+              hideTyping();
+            }
+          );
         });
 
         async function loadUnread() {
