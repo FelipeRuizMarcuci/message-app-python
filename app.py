@@ -196,5 +196,8 @@ def on_stop_typing(data):
 
 
 # ---------------- MAIN ----------------
-if __name__ == '__main__':
-    socketio.run(app, debug=True)
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
+
+if __name__ == "__main__":
+    port = int(os.getenv("PORT", 10000))
+    socketio.run(app, host="0.0.0.0", port=port)
