@@ -95,7 +95,7 @@ def register():
         session['username'] = username
 
         # Notifica todos os usuários conectados que um novo usuário entrou
-        socketio.emit("user_joined", {"id": session['user_id'], "username": username}, broadcast=True)
+        socketio.emit("user_joined", {"id": session['user_id'], "username": username})
 
         return redirect(url_for('chat'))
 
