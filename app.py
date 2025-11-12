@@ -63,20 +63,48 @@ def register():
         password = request.form['password']
         hashed_pw = bcrypt.generate_password_hash(password).decode('utf-8')
 
-        # Lista básica de palavras proibidas
-        palavras_proibidas = [
-            "pênis", "penis", "buceta", "caralho", "porra", "pau", "piroca", 
-            "xereca", "bosta", "merda", "cocô", "cu", "rola", "xota", "boquete"
-        ]
+        # ----------------- Filtro com whitelist -----------------
+        whitelist_path = os.path.join(BASE_DIR, "whitelist.txt")
 
-        # Remove acentuação e coloca em minúsculas para comparar
-        def normalizar_nome(nome):
-            return re.sub(r'[^a-z0-9]', '', nome.lower())
+        if os.path.exists(whitelist_path):
+            with open(whitelist_path, "r", encoding="utf-8") as f:
+                palavras_proibidas = [linha.strip().lower() for linha in f if linha.strip()]
+        else:
+            palavras_proibidas = []
 
-        nome_normalizado = normalizar_nome(username)
+        # Mapeamento de substituições comuns (leet)
+        substituicoes = {
+            "a": "[a@4ÀÁÂÃÄÅàáâãäå]",
+            "e": "[e3ÈÉÊËèéêë]",
+            "i": "[i1!ÌÍÎÏìíîï]",
+            "o": "[o0ÒÓÔÕÖòóôõö]",
+            "u": "[uùúûüÙÚÛÜ]",
+            "c": "[cçÇ]",
+            "s": "[s5$]",
+            "t": "[t7+]",
+            "b": "[b8]",
+            "g": "[g9]",
+            "z": "[z2]"
+        }
 
-        if any(p in nome_normalizado for p in palavras_proibidas):
+        def gerar_regex(palavra):
+            """Transforma a palavra proibida em regex que pega variações"""
+            regex = ""
+            for char in palavra:
+                regex += substituicoes.get(char.lower(), char.lower())
+            return re.compile(regex, re.IGNORECASE)
+
+        # Gera lista de regexs de palavras proibidas
+        padroes = [gerar_regex(p) for p in palavras_proibidas if len(p) > 2]
+
+        # Verifica se o nome do usuário contém alguma palavra proibida
+        nome_limpo = username.lower()
+        contem_proibida = any(p.search(nome_limpo) for p in padroes)
+
+        if contem_proibida:
             username = f"Usuário {random.randint(100, 999)}"
+
+        # ----------------- Fim do filtro -----------------
 
         conn = get_db_connection()
         cur = conn.cursor()
@@ -98,7 +126,6 @@ def register():
         socketio.emit("user_joined", {"id": session['user_id'], "username": username})
 
         return redirect(url_for('chat'))
-
 
     return render_template('register.html')
 
