@@ -1,4 +1,6 @@
 import os
+import random
+import re
 import sqlite3
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from flask_socketio import SocketIO, emit, join_room, leave_room
@@ -57,9 +59,24 @@ def home():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        username = request.form['username']
+        username = request.form['username'].strip()
         password = request.form['password']
         hashed_pw = bcrypt.generate_password_hash(password).decode('utf-8')
+
+        # Lista básica de palavras proibidas
+        palavras_proibidas = [
+            "pênis", "penis", "buceta", "caralho", "porra", "pau", "piroca", 
+            "xereca", "bosta", "merda", "cocô", "cu", "rola", "xota", "boquete"
+        ]
+
+        # Remove acentuação e coloca em minúsculas para comparar
+        def normalizar_nome(nome):
+            return re.sub(r'[^a-z0-9]', '', nome.lower())
+
+        nome_normalizado = normalizar_nome(username)
+
+        if any(p in nome_normalizado for p in palavras_proibidas):
+            username = f"Usuário {random.randint(100, 999)}"
 
         conn = get_db_connection()
         cur = conn.cursor()
@@ -73,8 +90,15 @@ def register():
         conn.commit()
         conn.close()
 
-        flash("Cadastro realizado com sucesso! Faça login.", "success")
-        return redirect(url_for('login'))
+        # Login automático
+        session['user_id'] = cur.lastrowid
+        session['username'] = username
+
+        # Notifica todos os usuários conectados que um novo usuário entrou
+        socketio.emit("user_joined", {"id": session['user_id'], "username": username}, broadcast=True)
+
+        return redirect(url_for('chat'))
+
 
     return render_template('register.html')
 
