@@ -5,3 +5,4 @@ flask-mysqldb
 eventlet
 flask_bcrypt
 flask_sqlalchemy
+gunicorn
