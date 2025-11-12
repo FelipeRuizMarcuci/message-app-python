@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Chat em Tempo Real</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background-color: #eae6df;
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        display: flex;
+      }
+
+      .chat-container {
+        display: flex;
+        width: 100%;
+        height: 100vh;
+      }
+
+      /* Sidebar */
+      .sidebar {
+        width: 30%;
+        background-color: #fff;
+        border-right: 1px solid #ddd;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .sidebar-header {
+        background-color: #075e54;
+        color: #fff;
+        padding: 15px;
+        font-size: 20px;
+        font-weight: bold;
+      }
+
+      .contact-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        overflow-y: auto;
+        flex-grow: 1;
+      }
+
+      .contact-list li {
+        border-bottom: 1px solid #eee;
+      }
+
+      .contact-list a {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-decoration: none;
+        color: #333;
+        padding: 15px;
+        transition: background 0.2s;
+      }
+
+      .contact-list a:hover {
+        background-color: #f5f5f5;
+      }
+
+      .badge {
+        color: #fff;
+        background-color: #25d366;
+        border-radius: 12px;
+        padding: 2px 8px;
+        font-size: 12px;
+      }
+
+      /* Chat principal */
+      .chat-area {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background-color: #efeae2;
+      }
+
+      .chat-header {
+        background-color: #075e54;
+        color: white;
+        padding: 15px;
+        font-weight: bold;
+      }
+
+      .chat-messages {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        background-color: #efeae2;
+      }
+
+      .message {
+        margin-bottom: 10px;
+        max-width: 70%;
+        padding: 10px 15px;
+        border-radius: 15px;
+        display: inline-block;
+        clear: both;
+        word-wrap: break-word;
+      }
+
+      .message.you {
+        background-color: #dcf8c6;
+        float: right;
+      }
+
+      .message.other {
+        background-color: #fff;
+        float: left;
+      }
+
+      .chat-input {
+        display: flex;
+        padding: 10px;
+        background-color: #f0f0f0;
+      }
+
+      .chat-input input {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 20px;
+        outline: none;
+      }
+
+      .chat-input button {
+        margin-left: 10px;
+        padding: 10px 20px;
+        border: none;
+        background-color: #25d366;
+        color: white;
+        border-radius: 20px;
+        cursor: pointer;
+      }
+
+      .placeholder {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #888;
+        font-size: 18px;
+        text-align: center;
+        padding: 50px;
+      }
+
+      .typing-indicator {
+        color: #666;
+        font-style: italic;
+        font-size: 13px;
+        padding: 5px 20px;
+        background: #f0f0f0;
+      }
+    </style>
+  </head>
+
+  <body data-user-id="{{ session.get('user_id')|default(None)|tojson }}">
+    <div class="chat-container">
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div class="sidebar-header">💬 Minhas conversas</div>
+        <ul class="contact-list">
+          {% for u in users %}
+          <li>
+            <a
+              href="#"
+              class="user-link"
+              data-id="{{ u[0] }}"
+              data-name="{{ u[1]|e }}"
+            >
+              <span>{{ u[1] }}</span>
+              <span id="badge_{{ u[0] }}" class="badge"></span>
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <!-- Chat principal -->
+      <div class="chat-area">
+        <div id="chatHeader" class="chat-header">Selecione uma conversa</div>
+
+        <div id="messages" class="chat-messages">
+          <div class="placeholder">
+            👈 Selecione um contato para começar a conversar<br />
+            Suas mensagens aparecerão aqui.
+          </div>
+        </div>
+
+        <div id="typingIndicator" class="typing-indicator"></div>
+
+        <div class="chat-input">
+          <input
+            type="text"
+            id="messageInput"
+            placeholder="Digite uma mensagem..."
+            disabled
+          />
+          <button id="sendBtn" disabled>Enviar</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const userId = JSON.parse(document.body.dataset.userId);
+        const socket = io();
+        let currentUser = null;
+        let currentUserName = null;
+        let typingTimeout = null;
+
+        const messagesDiv = document.getElementById("messages");
+        const input = document.getElementById("messageInput");
+        const sendBtn = document.getElementById("sendBtn");
+        const chatHeader = document.getElementById("chatHeader");
+        const typingIndicator = document.getElementById("typingIndicator");
+
+        function scrollMessages() {
+          messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function showTyping(senderName) {
+          typingIndicator.textContent = `${senderName} está digitando...`;
+        }
+
+        function hideTyping() {
+          typingIndicator.textContent = "";
+        }
+
+        socket.on("connect", () => {
+          socket.emit("join", { user_id: userId });
+        });
+
+        document.querySelectorAll(".user-link").forEach((link) => {
+          link.addEventListener("click", async (e) => {
+            e.preventDefault();
+            currentUser = parseInt(link.dataset.id);
+            currentUserName = link.dataset.name;
+            chatHeader.textContent = "💬 " + currentUserName;
+            input.disabled = false;
+            sendBtn.disabled = false;
+            messagesDiv.innerHTML = "";
+
+            const res = await fetch(`/messages/${currentUser}`);
+            const msgs = await res.json();
+
+            msgs.forEach((m) => {
+              const sender_id = m.sender_id ?? m[0];
+              const text = m.text ?? m[1];
+              const div = document.createElement("div");
+              div.classList.add("message");
+              div.classList.add(sender_id == userId ? "you" : "other");
+              div.textContent = text;
+              messagesDiv.appendChild(div);
+            });
+
+            scrollMessages();
+            socket.emit("mark_as_read", { sender_id: currentUser });
+            loadUnread();
+            hideTyping();
+          });
+        });
+
+        sendBtn.addEventListener("click", () => {
+          const msg = input.value.trim();
+          if (!msg || !currentUser) return;
+
+          const div = document.createElement("div");
+          div.classList.add("message", "you");
+          div.textContent = msg;
+          messagesDiv.appendChild(div);
+          scrollMessages();
+
+          socket.emit("send_message", {
+            message: msg,
+            receiver_id: currentUser,
+          });
+
+          input.value = "";
+          socket.emit("stop_typing", { receiver_id: currentUser });
+        });
+
+        input.addEventListener("input", () => {
+          if (!currentUser) return;
+          socket.emit("typing", { receiver_id: currentUser });
+
+          if (typingTimeout) clearTimeout(typingTimeout);
+          typingTimeout = setTimeout(() => {
+            socket.emit("stop_typing", { receiver_id: currentUser });
+          }, 1000);
+        });
+
+        socket.on("receive_message", (data) => {
+          const senderId = Number(data.sender_id);
+          const senderName = data.sender_name || "Usuário";
+          const messageText = data.message || "";
+
+          if (currentUser && senderId === Number(currentUser)) {
+            const div = document.createElement("div");
+            div.classList.add("message", "other");
+            div.textContent = messageText;
+            messagesDiv.appendChild(div);
+            scrollMessages();
+          } else {
+            loadUnread();
+          }
+        });
+
+        socket.on("typing", (data) => {
+          const senderId = Number(data.sender_id);
+          const senderName = data.sender_name || "Alguém";
+          if (currentUser && senderId === Number(currentUser)) {
+            showTyping(senderName);
+          }
+        });
+
+        socket.on("stop_typing", (data) => {
+          const senderId = Number(data.sender_id);
+          if (currentUser && senderId === Number(currentUser)) {
+            hideTyping();
+          }
+        });
+
+        async function loadUnread() {
+          try {
+            const res = await fetch("/unread_counts");
+            if (!res.ok) return;
+            const data = await res.json();
+            document
+              .querySelectorAll('[id^="badge_"]')
+              .forEach((el) => (el.textContent = ""));
+            for (const [id, count] of Object.entries(data || {})) {
+              const badge = document.getElementById(`badge_${id}`);
+              if (badge) badge.textContent = count > 0 ? `${count}` : "";
+            }
+          } catch (err) {
+            console.error("Erro ao carregar unread:", err);
+          }
+        }
+
+        loadUnread();
+      });
+    </script>
+  </body>
+</html>

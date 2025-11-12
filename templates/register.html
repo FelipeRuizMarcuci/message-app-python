@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Cadastro - Chat</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        background: linear-gradient(135deg, #2196f3, #64b5f6);
+      }
+      form {
+        background: #fff;
+        padding: 30px 35px;
+        border-radius: 10px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+        width: 320px;
+        text-align: center;
+      }
+      h2 {
+        margin-bottom: 20px;
+        color: #333;
+      }
+      input,
+      button {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 12px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        font-size: 15px;
+        box-sizing: border-box;
+      }
+      input:focus {
+        outline: none;
+        border-color: #2196f3;
+        box-shadow: 0 0 5px rgba(33, 150, 243, 0.5);
+      }
+      button {
+        background-color: #2196f3;
+        color: white;
+        border: none;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+      button:hover {
+        background-color: #1976d2;
+      }
+      p {
+        margin-top: 10px;
+        font-size: 14px;
+      }
+      a {
+        text-decoration: none;
+        color: #2196f3;
+        font-weight: 600;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <form method="POST">
+      <h2>Criar Conta</h2>
+      <input type="text" name="username" placeholder="Usuário" required />
+      <input type="password" name="password" placeholder="Senha" required />
+      <button type="submit">Cadastrar</button>
+      <p>Já tem conta? <a href="{{ url_for('login') }}">Entrar</a></p>
+    </form>
+  </body>
+</html>
