@@ -686,6 +686,17 @@
                 candidate: event.candidate,
               });
             }
+            pc.onconnectionstatechange = () => {
+              console.log("Estado conexão:", pc.connectionState);
+
+              if (
+                pc.connectionState === "failed" ||
+                pc.connectionState === "disconnected" ||
+                pc.connectionState === "closed"
+              ) {
+                cleanupCall();
+              }
+            };
           };
 
           pc.ontrack = (event) => {
@@ -702,12 +713,21 @@
           setCallStatus("");
           hideCallModal();
 
-          try {
-            if (pc) pc.close();
-          } catch {}
+          if (pc) {
+            try {
+              pc.ontrack = null;
+              pc.onicecandidate = null;
+              pc.onconnectionstatechange = null;
+              pc.close();
+            } catch {}
+          }
+
           pc = null;
 
-          if (localStream) localStream.getTracks().forEach((t) => t.stop());
+          if (localStream) {
+            localStream.getTracks().forEach((track) => track.stop());
+          }
+
           localStream = null;
 
           callState = "idle";
@@ -716,8 +736,6 @@
           callPeerId = null;
 
           hangupBtn.disabled = true;
-
-          // callBtn continua habilitado se tiver conversa aberta
           callBtn.disabled = !currentUser;
         }
 
