@@ -15,7 +15,7 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 DB_PATH = os.path.join(BASE_DIR, 'database.db')
 
 # --- Socket & Criptografia ---
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
 bcrypt = Bcrypt(app)
 
 # ------------------ Função auxiliar ------------------
@@ -276,8 +276,42 @@ def on_stop_typing(data):
     if receiver_id and sender_id:
         emit("stop_typing", {"sender_id": sender_id}, room=str(receiver_id))
 
+# ---------------- CHAMADAS (WebRTC signaling) ----------------
+
+@socketio.on("call_offer")
+def call_offer(data):
+    # data: {to, from, from_name, offer}
+    to = data.get("to")
+    if not to:
+        return
+    emit("call_offer", data, room=str(to))
+
+@socketio.on("call_answer")
+def call_answer(data):
+    # data: {to, from, answer}
+    to = data.get("to")
+    if not to:
+        return
+    emit("call_answer", data, room=str(to))
+
+@socketio.on("ice_candidate")
+def ice_candidate(data):
+    # data: {to, from, candidate}
+    to = data.get("to")
+    if not to:
+        return
+    emit("ice_candidate", data, room=str(to))
+
+@socketio.on("hangup")
+def hangup(data):
+    # data: {to, from}
+    to = data.get("to")
+    if not to:
+        return
+    emit("hangup", data, room=str(to))
+
 
 # ---------------- MAIN ----------------
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", 10000))
-    socketio.run(app, host="0.0.0.0", port=port)
+    port = 5000
+    socketio.run(app, host="127.0.0.1", port=port)

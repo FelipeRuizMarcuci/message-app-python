@@ -1,75 +1,144 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-br">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Cadastro - Chat</title>
+
     <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+
       body {
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
         display: flex;
         align-items: center;
         justify-content: center;
-        height: 100vh;
+
+        min-height: 100svh;
+
         background: linear-gradient(135deg, #2196f3, #64b5f6);
+        padding: 18px;
       }
+
       form {
         background: #fff;
-        padding: 30px 35px;
-        border-radius: 10px;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
-        width: 320px;
+        padding: 28px 26px;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+
+        width: min(92vw, 360px);
+
         text-align: center;
       }
+
       h2 {
-        margin-bottom: 20px;
+        margin: 0 0 18px;
         color: #333;
+        font-size: 22px;
+        line-height: 1.2;
       }
+
       input,
       button {
         width: 100%;
-        padding: 10px;
+        padding: 12px 12px;
         margin-bottom: 12px;
-        border-radius: 6px;
+        border-radius: 10px;
         border: 1px solid #ccc;
         font-size: 15px;
-        box-sizing: border-box;
       }
+
       input:focus {
         outline: none;
         border-color: #2196f3;
-        box-shadow: 0 0 5px rgba(33, 150, 243, 0.5);
+        box-shadow: 0 0 0 4px rgba(33, 150, 243, 0.18);
       }
+
       button {
         background-color: #2196f3;
         color: white;
         border: none;
-        font-weight: bold;
+        font-weight: 700;
         cursor: pointer;
-        transition: background 0.3s;
+        transition: background 0.25s ease;
+        margin-top: 6px;
       }
+
       button:hover {
         background-color: #1976d2;
       }
+
       p {
-        margin-top: 10px;
+        margin: 12px 0 0;
         font-size: 14px;
+        color: #444;
       }
+
       a {
         text-decoration: none;
-        color: #2196f3;
-        font-weight: 600;
+        color: #1565c0;
+        font-weight: 700;
       }
+
       a:hover {
         text-decoration: underline;
       }
+
+      /* Ajustes para telas pequenas */
+      @media (max-width: 360px) {
+        body {
+          padding: 14px;
+        }
+
+        form {
+          padding: 22px 18px;
+          border-radius: 12px;
+        }
+
+        h2 {
+          font-size: 20px;
+        }
+
+        input,
+        button {
+          font-size: 14px;
+          padding: 11px 12px;
+          border-radius: 10px;
+        }
+      }
     </style>
   </head>
+
   <body>
-    <form method="POST">
+    <form method="POST" autocomplete="on">
       <h2>Criar Conta</h2>
-      <input type="text" name="username" placeholder="Usuário" required />
-      <input type="password" name="password" placeholder="Senha" required />
+
+      <input
+        type="text"
+        name="username"
+        placeholder="Usuário"
+        required
+        autocomplete="username"
+      />
+
+      <input
+        type="password"
+        name="password"
+        placeholder="Senha"
+        required
+        autocomplete="new-password"
+      />
+
       <button type="submit">Cadastrar</button>
+
       <p>Já tem conta? <a href="{{ url_for('login') }}">Entrar</a></p>
     </form>
   </body>

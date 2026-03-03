@@ -1,12 +1,29 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-br">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Chat em Tempo Real</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+
     <style>
       * {
         box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+        overflow: hidden;
+      }
+
+      :root {
+        --green: #075e54;
+        --bg: #efeae2;
+        --sidebarBg: #fff;
+        --border: #ddd;
+        --muted: #888;
+        --badge: #25d366;
       }
 
       body {
@@ -14,31 +31,33 @@
         background-color: #eae6df;
         margin: 0;
         padding: 0;
-        height: 100vh;
+        height: 100svh;
         display: flex;
       }
 
       .chat-container {
         display: flex;
         width: 100%;
-        height: 100vh;
+        height: 100svh;
+        min-height: 100svh;
       }
 
       /* Sidebar */
       .sidebar {
-        width: 30%;
-        background-color: #fff;
-        border-right: 1px solid #ddd;
+        width: clamp(260px, 30vw, 420px);
+        background-color: var(--sidebarBg);
+        border-right: 1px solid var(--border);
         display: flex;
         flex-direction: column;
+        min-width: 240px;
       }
 
       .sidebar-header {
-        background-color: #075e54;
+        background-color: var(--green);
         color: #fff;
         padding: 15px;
-        font-size: 20px;
-        font-weight: bold;
+        font-size: 18px;
+        font-weight: 700;
       }
 
       .contact-list {
@@ -46,7 +65,8 @@
         margin: 0;
         padding: 0;
         overflow-y: auto;
-        flex-grow: 1;
+        flex: 1;
+        -webkit-overflow-scrolling: touch;
       }
 
       .contact-list li {
@@ -59,8 +79,9 @@
         align-items: center;
         text-decoration: none;
         color: #333;
-        padding: 15px;
+        padding: 14px 15px;
         transition: background 0.2s;
+        gap: 12px;
       }
 
       .contact-list a:hover {
@@ -69,10 +90,12 @@
 
       .badge {
         color: #fff;
-        background-color: #25d366;
-        border-radius: 12px;
+        background-color: var(--badge);
+        border-radius: 999px;
         padding: 2px 8px;
         font-size: 12px;
+        min-width: 22px;
+        text-align: center;
       }
 
       /* Chat principal */
@@ -80,89 +103,268 @@
         flex: 1;
         display: flex;
         flex-direction: column;
-        background-color: #efeae2;
+        background-color: var(--bg);
+        min-width: 0;
       }
 
       .chat-header {
-        background-color: #075e54;
+        background-color: var(--green);
         color: white;
-        padding: 15px;
-        font-weight: bold;
+        padding: 12px 15px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 52px;
+      }
+
+      .back-btn {
+        display: none;
+        border: none;
+        background: rgba(255, 255, 255, 0.18);
+        color: #fff;
+        border-radius: 10px;
+        padding: 8px 10px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+
+      .call-actions {
+        margin-left: auto;
+        display: flex;
+        gap: 8px;
+      }
+
+      .call-btn {
+        border: none;
+        border-radius: 999px;
+        padding: 8px 12px;
+        cursor: pointer;
+        font-weight: 800;
+      }
+
+      .call-btn.call {
+        background: rgba(255, 255, 255, 0.18);
+        color: #fff;
+      }
+
+      .call-btn.hangup {
+        background: rgba(255, 80, 80, 0.85);
+        color: #fff;
+      }
+
+      .call-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
       }
 
       .chat-messages {
         flex: 1;
-        padding: 20px;
+        padding: 16px;
         overflow-y: auto;
-        background-color: #efeae2;
+        background-color: var(--bg);
+        -webkit-overflow-scrolling: touch;
       }
 
       .message {
         margin-bottom: 10px;
-        max-width: 70%;
-        padding: 10px 15px;
-        border-radius: 15px;
+        max-width: min(70%, 520px);
+        padding: 10px 14px;
+        border-radius: 16px;
         display: inline-block;
         clear: both;
         word-wrap: break-word;
+        overflow-wrap: anywhere;
       }
 
       .message.you {
         background-color: #dcf8c6;
         float: right;
+        border-bottom-right-radius: 6px;
       }
 
       .message.other {
         background-color: #fff;
         float: left;
+        border-bottom-left-radius: 6px;
       }
 
       .chat-input {
         display: flex;
         padding: 10px;
         background-color: #f0f0f0;
+        gap: 10px;
       }
 
       .chat-input input {
         flex: 1;
-        padding: 10px;
+        padding: 10px 12px;
         border: 1px solid #ccc;
-        border-radius: 20px;
+        border-radius: 999px;
         outline: none;
+        min-width: 0;
       }
 
       .chat-input button {
-        margin-left: 10px;
-        padding: 10px 20px;
+        padding: 10px 18px;
         border: none;
-        background-color: #25d366;
+        background-color: var(--badge);
         color: white;
-        border-radius: 20px;
+        border-radius: 999px;
         cursor: pointer;
+        white-space: nowrap;
       }
 
       .placeholder {
-        flex: 1;
+        height: 100%;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #888;
-        font-size: 18px;
+        color: var(--muted);
+        font-size: 16px;
         text-align: center;
-        padding: 50px;
+        padding: 32px;
       }
 
       .typing-indicator {
         color: #666;
         font-style: italic;
         font-size: 13px;
-        padding: 5px 20px;
+        padding: 6px 16px;
         background: #f0f0f0;
+      }
+
+      /* Modal simples de chamada */
+      .call-modal {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: rgba(0, 0, 0, 0.35);
+        z-index: 9999;
+      }
+      .call-modal.show {
+        display: flex;
+      }
+
+      .call-card {
+        width: min(92vw, 360px);
+        background: #fff;
+        border-radius: 16px;
+        padding: 18px;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+        text-align: center;
+      }
+
+      .call-title {
+        font-weight: 900;
+        font-size: 18px;
+        margin: 0 0 10px;
+      }
+      .call-sub {
+        color: #555;
+        margin: 0 0 14px;
+        font-size: 14px;
+      }
+      .call-row {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+      }
+      .call-row button {
+        border: none;
+        border-radius: 999px;
+        padding: 10px 14px;
+        cursor: pointer;
+        font-weight: 900;
+      }
+      .call-accept {
+        background: #25d366;
+        color: #fff;
+      }
+      .call-decline {
+        background: #e53935;
+        color: #fff;
+      }
+
+      /* ====== TABLET ====== */
+      @media (max-width: 900px) {
+        .sidebar {
+          width: 320px;
+          min-width: 260px;
+        }
+      }
+
+      /* ====== MOBILE ====== */
+      @media (max-width: 720px) {
+        html,
+        body {
+          height: 100%;
+          overflow: hidden;
+        }
+
+        .chat-container {
+          position: relative;
+          height: 100svh;
+          width: 100%;
+        }
+
+        .sidebar {
+          position: fixed;
+          inset: 0;
+          width: 100%;
+          min-width: 0;
+          border-right: none;
+          z-index: 1;
+        }
+
+        .chat-area {
+          position: fixed;
+          inset: 0;
+          width: 100%;
+          z-index: 2;
+          transform: translateX(100%);
+          transition: transform 0.25s ease;
+          overflow: hidden;
+        }
+
+        .chat-container.show-chat .chat-area {
+          transform: translateX(0%);
+        }
+        .chat-container.show-chat .sidebar {
+          display: none;
+        }
+        .back-btn {
+          display: inline-flex;
+        }
+
+        .chat-messages {
+          flex: 1;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+          overscroll-behavior: contain;
+          padding: 12px;
+        }
+
+        .chat-input {
+          flex: 0 0 auto;
+        }
+        .message {
+          max-width: 85%;
+        }
+        .chat-input button {
+          padding: 10px 14px;
+        }
       }
     </style>
   </head>
 
-  <body data-user-id="{{ session.get('user_id')|default(None)|tojson }}">
+  <body
+    data-user-id="{{ session.get('user_id')|default(None)|tojson }}"
+    data-username="{{ session.get('username')|default('')|e }}"
+  >
     <div class="chat-container">
       <!-- Sidebar -->
       <div class="sidebar">
@@ -186,7 +388,31 @@
 
       <!-- Chat principal -->
       <div class="chat-area">
-        <div id="chatHeader" class="chat-header">Selecione uma conversa</div>
+        <div class="chat-header">
+          <button id="backBtn" class="back-btn" type="button">←</button>
+
+          <div style="display: flex; flex-direction: column; line-height: 1.1">
+            <div id="chatHeader">Selecione uma conversa</div>
+            <div
+              id="callStatus"
+              style="font-weight: 600; font-size: 12px; opacity: 0.9"
+            ></div>
+          </div>
+
+          <div class="call-actions">
+            <button id="callBtn" class="call-btn call" type="button" disabled>
+              📞 Ligar
+            </button>
+            <button
+              id="hangupBtn"
+              class="call-btn hangup"
+              type="button"
+              disabled
+            >
+              ⛔ Encerrar
+            </button>
+          </div>
+        </div>
 
         <div id="messages" class="chat-messages">
           <div class="placeholder">
@@ -209,63 +435,517 @@
       </div>
     </div>
 
+    <!-- Modal chamada -->
+    <div id="callModal" class="call-modal">
+      <div class="call-card">
+        <p id="callTitle" class="call-title">Chamada</p>
+        <p id="callSub" class="call-sub"></p>
+        <div class="call-row">
+          <button id="acceptCallBtn" class="call-accept" type="button">
+            ✅ Aceitar
+          </button>
+          <button id="declineCallBtn" class="call-decline" type="button">
+            ❌ Recusar
+          </button>
+          <button id="cancelCallBtn" class="call-decline" type="button">
+            ⛔ Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notificação sonora mensagem -->
+    <audio id="messageSound" preload="auto">
+      <source
+        src="{{ url_for('static', filename='sounds/notification.mp3') }}"
+        type="audio/mpeg"
+      />
+    </audio>
+
+    <!-- Ringtone / Ringback -->
+    <audio id="ringtoneSound" preload="auto" loop>
+      <source
+        src="{{ url_for('static', filename='sounds/ringtone.mp3') }}"
+        type="audio/mpeg"
+      />
+    </audio>
+
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         const userId = JSON.parse(document.body.dataset.userId);
+        const myUsername = document.body.dataset.username || "";
         const socket = io();
+
         let currentUser = null;
         let currentUserName = null;
         let typingTimeout = null;
 
+        const container = document.querySelector(".chat-container");
         const messagesDiv = document.getElementById("messages");
         const input = document.getElementById("messageInput");
         const sendBtn = document.getElementById("sendBtn");
         const chatHeader = document.getElementById("chatHeader");
+        const callStatus = document.getElementById("callStatus");
         const typingIndicator = document.getElementById("typingIndicator");
+        const backBtn = document.getElementById("backBtn");
 
+        const messageSound = document.getElementById("messageSound");
+        const ringtoneSound = document.getElementById("ringtoneSound");
+
+        // Call UI
+        const callBtn = document.getElementById("callBtn");
+        const hangupBtn = document.getElementById("hangupBtn");
+        const callModal = document.getElementById("callModal");
+        const callTitle = document.getElementById("callTitle");
+        const callSub = document.getElementById("callSub");
+        const acceptCallBtn = document.getElementById("acceptCallBtn");
+        const declineCallBtn = document.getElementById("declineCallBtn");
+        const cancelCallBtn = document.getElementById("cancelCallBtn");
+
+        // --------- helpers UI ----------
+        function openChatMobile() {
+          container.classList.add("show-chat");
+        }
+        function closeChatMobile() {
+          container.classList.remove("show-chat");
+        }
         function scrollMessages() {
           messagesDiv.scrollTop = messagesDiv.scrollHeight;
         }
-
         function showTyping(senderName) {
           typingIndicator.textContent = `${senderName} está digitando...`;
         }
-
         function hideTyping() {
           typingIndicator.textContent = "";
         }
 
+        function showCallModal(title, sub) {
+          callTitle.textContent = title;
+          callSub.textContent = sub || "";
+          callModal.classList.add("show");
+        }
+        function hideCallModal() {
+          callModal.classList.remove("show");
+        }
+
+        function setCallStatus(text) {
+          callStatus.textContent = text || "";
+        }
+
+        // Mostrar botões corretos no modal (WhatsApp-like)
+        function setModalMode(mode) {
+          const isIncoming = mode === "incoming";
+          acceptCallBtn.style.display = isIncoming ? "inline-flex" : "none";
+          declineCallBtn.style.display = isIncoming ? "inline-flex" : "none";
+          cancelCallBtn.style.display = !isIncoming ? "inline-flex" : "none";
+        }
+
+        // --------- audio unlock (mobile autoplay restrictions) ----------
+        let audioUnlocked = false;
+        function unlockAudio() {
+          if (audioUnlocked) return;
+          audioUnlocked = true;
+
+          messageSound.muted = true;
+          messageSound
+            .play()
+            .then(() => {
+              messageSound.pause();
+              messageSound.currentTime = 0;
+              messageSound.muted = false;
+            })
+            .catch(() => {
+              audioUnlocked = false;
+              messageSound.muted = false;
+            });
+
+          ringtoneSound.muted = true;
+          ringtoneSound
+            .play()
+            .then(() => {
+              ringtoneSound.pause();
+              ringtoneSound.currentTime = 0;
+              ringtoneSound.muted = false;
+            })
+            .catch(() => {
+              ringtoneSound.muted = false;
+            });
+        }
+        document.addEventListener("pointerdown", unlockAudio, { once: true });
+        document.addEventListener("keydown", unlockAudio, { once: true });
+
+        function playNotification() {
+          unlockAudio();
+          messageSound.currentTime = 0;
+          messageSound.play().catch(() => {});
+        }
+
+        function playRingtone() {
+          unlockAudio();
+          ringtoneSound.currentTime = 0;
+          ringtoneSound.play().catch(() => {});
+        }
+
+        function stopRingtone() {
+          try {
+            ringtoneSound.pause();
+            ringtoneSound.currentTime = 0;
+          } catch {}
+        }
+
+        // --------- call timer ----------
+        let callTimer = null;
+        let callSeconds = 0;
+
+        function startCallTimer() {
+          stopCallTimer();
+          callSeconds = 0;
+          callTimer = setInterval(() => {
+            callSeconds++;
+            const mm = String(Math.floor(callSeconds / 60)).padStart(2, "0");
+            const ss = String(callSeconds % 60).padStart(2, "0");
+            setCallStatus(`Em chamada • ${mm}:${ss}`);
+          }, 1000);
+        }
+
+        function stopCallTimer() {
+          if (callTimer) clearInterval(callTimer);
+          callTimer = null;
+          callSeconds = 0;
+        }
+
+        function resetConversationUI() {
+          currentUser = null;
+          currentUserName = null;
+
+          chatHeader.textContent = "Selecione uma conversa";
+          setCallStatus("");
+
+          input.disabled = true;
+          sendBtn.disabled = true;
+
+          callBtn.disabled = true;
+          hangupBtn.disabled = true;
+
+          messagesDiv.innerHTML = `
+            <div class="placeholder">
+              👈 Selecione um contato para começar a conversar<br />
+              Suas mensagens aparecerão aqui.
+            </div>
+          `;
+        }
+
+        // --------- socket connect ----------
         socket.on("connect", () => {
           socket.emit("join", { user_id: userId });
         });
 
+        // =====================
+        // WEBRTC (ÁUDIO 1–1)
+        // =====================
+        let pc = null;
+        let localStream = null;
+
+        let callState = "idle"; // idle | calling | ringing | in_call
+        let pendingOfferFrom = null;
+        let pendingOffer = null;
+
+        let callPeerId = null; // ✅ SEMPRE o outro lado da ligação
+
+        const rtcConfig = {
+          iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+        };
+
+        async function startLocalAudio() {
+          if (localStream) return localStream;
+          localStream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+          });
+          return localStream;
+        }
+
+        function attachRemoteAudio(stream) {
+          let a = document.getElementById("remoteAudio");
+          if (!a) {
+            a = document.createElement("audio");
+            a.id = "remoteAudio";
+            a.autoplay = true;
+            document.body.appendChild(a);
+          }
+          a.srcObject = stream;
+        }
+
+        function createPeerConnection(targetId) {
+          pc = new RTCPeerConnection(rtcConfig);
+
+          pc.onicecandidate = (event) => {
+            if (event.candidate) {
+              socket.emit("ice_candidate", {
+                to: targetId,
+                from: userId,
+                candidate: event.candidate,
+              });
+            }
+          };
+
+          pc.ontrack = (event) => {
+            const stream = event.streams && event.streams[0];
+            if (stream) attachRemoteAudio(stream);
+          };
+
+          localStream.getTracks().forEach((t) => pc.addTrack(t, localStream));
+        }
+
+        function cleanupCall() {
+          stopRingtone();
+          stopCallTimer();
+          setCallStatus("");
+          hideCallModal();
+
+          try {
+            if (pc) pc.close();
+          } catch {}
+          pc = null;
+
+          if (localStream) localStream.getTracks().forEach((t) => t.stop());
+          localStream = null;
+
+          callState = "idle";
+          pendingOfferFrom = null;
+          pendingOffer = null;
+          callPeerId = null;
+
+          hangupBtn.disabled = true;
+
+          // callBtn continua habilitado se tiver conversa aberta
+          callBtn.disabled = !currentUser;
+        }
+
+        function hangup(toId = null, notify = true) {
+          const target = toId || callPeerId || currentUser || pendingOfferFrom;
+          if (notify && target) {
+            socket.emit("hangup", { to: target, from: userId });
+          }
+          cleanupCall();
+        }
+
+        // Botões do modal
+        cancelCallBtn.addEventListener("click", () => {
+          // ✅ cancela chamada saindo e fecha nos dois
+          hangup(callPeerId, true);
+        });
+
+        declineCallBtn.addEventListener("click", () => {
+          // ✅ recusa chamada e avisa quem ligou
+          hangup(callPeerId, true);
+        });
+
+        acceptCallBtn.addEventListener("click", async () => {
+          if (!pendingOfferFrom || !pendingOffer) return;
+
+          try {
+            stopRingtone();
+            callState = "in_call";
+            hangupBtn.disabled = false;
+
+            callPeerId = pendingOfferFrom;
+            setCallStatus("Conectando…");
+            hideCallModal();
+
+            await startLocalAudio();
+            createPeerConnection(callPeerId);
+
+            await pc.setRemoteDescription(
+              new RTCSessionDescription(pendingOffer),
+            );
+            const answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
+
+            socket.emit("call_answer", {
+              to: callPeerId,
+              from: userId,
+              answer,
+            });
+
+            // ✅ timer inicia ao aceitar
+            startCallTimer();
+
+            pendingOfferFrom = null;
+            pendingOffer = null;
+          } catch (e) {
+            console.error(e);
+            alert("Erro ao aceitar a chamada.");
+            hangup(callPeerId, true);
+          }
+        });
+
+        // Botões do header
+        callBtn.addEventListener("click", async () => {
+          if (!currentUser) return alert("Selecione um contato para ligar.");
+          if (callState !== "idle") return;
+
+          try {
+            callState = "calling";
+            callPeerId = currentUser;
+
+            hangupBtn.disabled = false;
+
+            setModalMode("outgoing"); // ✅ só Cancelar
+            setCallStatus("Chamando…");
+            showCallModal(
+              "📞 Chamando…",
+              `Ligando para ${currentUserName || "usuário"}…`,
+            );
+
+            // ✅ ringback enquanto chama
+            playRingtone();
+
+            await startLocalAudio();
+            createPeerConnection(callPeerId);
+
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+
+            socket.emit("call_offer", {
+              to: callPeerId,
+              from: userId,
+              from_name: myUsername,
+              offer,
+            });
+          } catch (e) {
+            console.error(e);
+            alert(
+              "Não foi possível iniciar a chamada. Verifique permissão do microfone.",
+            );
+            hangup(callPeerId, false);
+          }
+        });
+
+        hangupBtn.addEventListener("click", () => {
+          hangup(callPeerId, true);
+        });
+
+        // Recebe oferta de chamada
+        socket.on("call_offer", (data) => {
+          const from = Number(data.from);
+          const fromName = data.from_name || "Usuário";
+          const offer = data.offer;
+
+          // se já está em chamada, recusa automaticamente
+          if (callState !== "idle") {
+            socket.emit("hangup", { to: from, from: userId });
+            return;
+          }
+
+          callState = "ringing";
+          pendingOfferFrom = from;
+          pendingOffer = offer;
+          callPeerId = from;
+
+          setModalMode("incoming"); // ✅ Aceitar/Recusar
+          setCallStatus("Recebendo chamada…");
+          showCallModal("📞 Chamada recebida", `${fromName} está te ligando`);
+
+          // ✅ toca ringtone (loop)
+          playRingtone();
+        });
+
+        // Recebe resposta (quem ligou)
+        socket.on("call_answer", async (data) => {
+          if (!pc) return;
+          try {
+            await pc.setRemoteDescription(
+              new RTCSessionDescription(data.answer),
+            );
+            callState = "in_call";
+            hideCallModal();
+
+            // ✅ parar ringback e iniciar timer
+            stopRingtone();
+            startCallTimer();
+          } catch (e) {
+            console.error(e);
+            hangup(callPeerId, true);
+          }
+        });
+
+        // ICE candidates
+        socket.on("ice_candidate", async (data) => {
+          if (!pc) return;
+          try {
+            await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+          } catch (e) {
+            console.warn("ICE error:", e);
+          }
+        });
+
+        // ✅ Hangup recebido (resolve: caller cancel, e encerra pros dois)
+        socket.on("hangup", () => {
+          cleanupCall();
+        });
+
+        // Se fechar a aba, avisa o outro lado
+        window.addEventListener("beforeunload", () => {
+          if (callState !== "idle") {
+            const target = callPeerId || currentUser || pendingOfferFrom;
+            if (target) socket.emit("hangup", { to: target, from: userId });
+          }
+        });
+
+        // ================
+        // CHAT NORMAL
+        // ================
+        backBtn.addEventListener("click", () => {
+          // se estiver em call, encerra pros dois
+          if (callState !== "idle") hangup(callPeerId, true);
+
+          closeChatMobile();
+          hideTyping();
+          resetConversationUI();
+          loadUnread();
+        });
+
+        async function openConversation(user_id, user_name) {
+          currentUser = parseInt(user_id);
+          currentUserName = user_name;
+
+          chatHeader.textContent = "💬 " + currentUserName;
+
+          input.disabled = false;
+          sendBtn.disabled = false;
+
+          // ✅ habilita ligar quando tiver contato selecionado
+          callBtn.disabled = false;
+
+          // encerrar só se estiver em chamada
+          hangupBtn.disabled = callState === "idle";
+
+          messagesDiv.innerHTML = "";
+
+          const res = await fetch(`/messages/${currentUser}`);
+          const msgs = await res.json();
+
+          msgs.forEach((m) => {
+            const sender_id = m.sender_id ?? m[0];
+            const text = m.text ?? m[1];
+            const div = document.createElement("div");
+            div.classList.add("message");
+            div.classList.add(sender_id == userId ? "you" : "other");
+            div.textContent = text;
+            messagesDiv.appendChild(div);
+          });
+
+          scrollMessages();
+          socket.emit("mark_as_read", { sender_id: currentUser });
+          loadUnread();
+          hideTyping();
+          openChatMobile();
+        }
+
         document.querySelectorAll(".user-link").forEach((link) => {
           link.addEventListener("click", async (e) => {
             e.preventDefault();
-            currentUser = parseInt(link.dataset.id);
-            currentUserName = link.dataset.name;
-            chatHeader.textContent = "💬 " + currentUserName;
-            input.disabled = false;
-            sendBtn.disabled = false;
-            messagesDiv.innerHTML = "";
-
-            const res = await fetch(`/messages/${currentUser}`);
-            const msgs = await res.json();
-
-            msgs.forEach((m) => {
-              const sender_id = m.sender_id ?? m[0];
-              const text = m.text ?? m[1];
-              const div = document.createElement("div");
-              div.classList.add("message");
-              div.classList.add(sender_id == userId ? "you" : "other");
-              div.textContent = text;
-              messagesDiv.appendChild(div);
-            });
-
-            scrollMessages();
-            socket.emit("mark_as_read", { sender_id: currentUser });
-            loadUnread();
-            hideTyping();
+            await openConversation(link.dataset.id, link.dataset.name);
           });
         });
 
@@ -283,21 +963,20 @@
             message: msg,
             receiver_id: currentUser,
           });
-
           input.value = "";
           socket.emit("stop_typing", { receiver_id: currentUser });
         });
 
-        // Enviar mensagem ao pressionar Enter
         input.addEventListener("keypress", (e) => {
           if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
-            sendBtn.click(); // Simula o clique no botão "Enviar"
+            sendBtn.click();
           }
         });
 
         input.addEventListener("input", () => {
           if (!currentUser) return;
+
           socket.emit("typing", { receiver_id: currentUser });
 
           if (typingTimeout) clearTimeout(typingTimeout);
@@ -308,78 +987,58 @@
 
         socket.on("receive_message", (data) => {
           const senderId = Number(data.sender_id);
-          const senderName = data.sender_name || "Usuário";
           const messageText = data.message || "";
 
-          if (currentUser && senderId === Number(currentUser)) {
-            const div = document.createElement("div");
-            div.classList.add("message", "other");
-            div.textContent = messageText;
-            messagesDiv.appendChild(div);
-            scrollMessages();
-          } else {
+          if (senderId === Number(userId)) return;
+
+          const isChatOpenForThisSender =
+            currentUser && senderId === Number(currentUser);
+
+          if (!isChatOpenForThisSender) {
+            playNotification();
             loadUnread();
+            return;
           }
+
+          const div = document.createElement("div");
+          div.classList.add("message", "other");
+          div.textContent = messageText;
+          messagesDiv.appendChild(div);
+          scrollMessages();
         });
 
         socket.on("typing", (data) => {
           const senderId = Number(data.sender_id);
           const senderName = data.sender_name || "Alguém";
-          if (currentUser && senderId === Number(currentUser)) {
+          if (currentUser && senderId === Number(currentUser))
             showTyping(senderName);
-          }
         });
 
         socket.on("stop_typing", (data) => {
           const senderId = Number(data.sender_id);
-          if (currentUser && senderId === Number(currentUser)) {
-            hideTyping();
-          }
+          if (currentUser && senderId === Number(currentUser)) hideTyping();
         });
+
         socket.on("user_joined", (user) => {
           const existing = document.querySelector(`[data-id="${user.id}"]`);
-          if (existing) return; // Evita duplicados
+          if (existing) return;
 
           const ul = document.querySelector(".contact-list");
           const li = document.createElement("li");
           li.innerHTML = `
-    <a href="#" class="user-link" data-id="${user.id}" data-name="${user.username}">
-      <span>${user.username}</span>
-      <span id="badge_${user.id}" class="badge"></span>
-    </a>
-  `;
+            <a href="#" class="user-link" data-id="${user.id}" data-name="${user.username}">
+              <span>${user.username}</span>
+              <span id="badge_${user.id}" class="badge"></span>
+            </a>
+          `;
           ul.appendChild(li);
 
-          // Reaplica o evento de clique para o novo usuário
           li.querySelector(".user-link").addEventListener(
             "click",
             async (e) => {
               e.preventDefault();
-              currentUser = parseInt(user.id);
-              currentUserName = user.username;
-              chatHeader.textContent = "💬 " + currentUserName;
-              input.disabled = false;
-              sendBtn.disabled = false;
-              messagesDiv.innerHTML = "";
-
-              const res = await fetch(`/messages/${currentUser}`);
-              const msgs = await res.json();
-
-              msgs.forEach((m) => {
-                const sender_id = m.sender_id ?? m[0];
-                const text = m.text ?? m[1];
-                const div = document.createElement("div");
-                div.classList.add("message");
-                div.classList.add(sender_id == userId ? "you" : "other");
-                div.textContent = text;
-                messagesDiv.appendChild(div);
-              });
-
-              scrollMessages();
-              socket.emit("mark_as_read", { sender_id: currentUser });
-              loadUnread();
-              hideTyping();
-            }
+              await openConversation(user.id, user.username);
+            },
           );
         });
 
@@ -387,10 +1046,13 @@
           try {
             const res = await fetch("/unread_counts");
             if (!res.ok) return;
+
             const data = await res.json();
+
             document
               .querySelectorAll('[id^="badge_"]')
               .forEach((el) => (el.textContent = ""));
+
             for (const [id, count] of Object.entries(data || {})) {
               const badge = document.getElementById(`badge_${id}`);
               if (badge) badge.textContent = count > 0 ? `${count}` : "";
@@ -400,6 +1062,7 @@
           }
         }
 
+        // Inicial
         loadUnread();
       });
     </script>
