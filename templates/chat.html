@@ -709,7 +709,11 @@
               });
             }
             pc.onconnectionstatechange = () => {
-              console.log("Estado conexão:", pc.connectionState);
+              console.log(
+                "Estado conexão:",
+                pc.connectionState,
+                event.candidate.candidate,
+              );
 
               if (
                 pc.connectionState === "failed" ||
