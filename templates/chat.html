@@ -653,17 +653,25 @@
         let callPeerId = null; // ✅ SEMPRE o outro lado da ligação
 
         const rtcConfig = {
+          iceTransportPolicy: "relay", // ✅ força usar TURN (pra testar e resolver redes difíceis)
           iceServers: [
-            {
-              urls: "stun:global.stun.metered.ca:80",
-            },
+            // STUN (não faz mal manter, mas com relay ele não será usado)
+            { urls: ["stun:global.stun.metered.ca:80"] },
+
+            // TURN (UDP/TCP)
             {
               urls: [
                 "turn:global.relay.metered.ca:80",
                 "turn:global.relay.metered.ca:80?transport=tcp",
-                "turn:global.relay.metered.ca:443",
-                "turns:global.relay.metered.ca:443?transport=tcp",
+                "turn:global.relay.metered.ca:443?transport=tcp",
               ],
+              username: "7e4b89de53bdfdb8819f221d",
+              credential: "KQcDy9jd6SNSohCY",
+            },
+
+            // TURNS (TLS 443) — ESSENCIAL em redes corporativas
+            {
+              urls: ["turns:global.relay.metered.ca:443?transport=tcp"],
               username: "7e4b89de53bdfdb8819f221d",
               credential: "KQcDy9jd6SNSohCY",
             },
