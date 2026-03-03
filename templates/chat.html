@@ -653,7 +653,21 @@
         let callPeerId = null; // ✅ SEMPRE o outro lado da ligação
 
         const rtcConfig = {
-          iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+          iceServers: [
+            {
+              urls: "stun:global.stun.metered.ca:80",
+            },
+            {
+              urls: [
+                "turn:global.relay.metered.ca:80",
+                "turn:global.relay.metered.ca:80?transport=tcp",
+                "turn:global.relay.metered.ca:443",
+                "turns:global.relay.metered.ca:443?transport=tcp",
+              ],
+              username: "7e4b89de53bdfdb8819f221d",
+              credential: "KQcDy9jd6SNSohCY",
+            },
+          ],
         };
 
         async function startLocalAudio() {
