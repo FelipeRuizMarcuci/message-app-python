@@ -1,7 +1,6 @@
 flask
 flask-socketio
 flask-login
-flask-mysqldb
 eventlet
 flask_bcrypt
 flask_sqlalchemy
