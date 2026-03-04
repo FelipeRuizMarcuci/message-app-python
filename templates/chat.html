@@ -83,7 +83,6 @@
         transition: background 0.2s;
         gap: 12px;
       }
-
       .contact-list a:hover {
         background-color: #f5f5f5;
       }
@@ -147,7 +146,6 @@
         background: rgba(255, 255, 255, 0.18);
         color: #fff;
       }
-
       .call-btn.hangup {
         background: rgba(255, 80, 80, 0.85);
         color: #fff;
@@ -519,12 +517,12 @@
           typingIndicator.textContent = "";
         }
 
-        function showCallModal(title, sub) {
+        function showCallModalFn(title, sub) {
           callTitle.textContent = title;
           callSub.textContent = sub || "";
           callModal.classList.add("show");
         }
-        function hideCallModal() {
+        function hideCallModalFn() {
           callModal.classList.remove("show");
         }
 
@@ -598,7 +596,7 @@
         let callSeconds = 0;
 
         function startCallTimer() {
-          stopCallTimer();
+          if (callTimer) return; // não inicia 2x
           callSeconds = 0;
           callTimer = setInterval(() => {
             callSeconds++;
@@ -650,30 +648,30 @@
         let pendingOfferFrom = null;
         let pendingOffer = null;
 
-        let callPeerId = null; // ✅ SEMPRE o outro lado da ligação
+        let callPeerId = null;
+
+        // ✅ FILA DE ICE (não perder candidates)
+        let pendingIceCandidates = [];
+
+        // ⚠️ Troque por credenciais NOVAS do Metered
+        const TURN_USERNAME = "536947f76d5875ce42116279";
+        const TURN_CREDENTIAL = "YORZ0/GA4l7kWQE1";
 
         const rtcConfig = {
-          iceTransportPolicy: "relay", // ✅ força usar TURN (pra testar e resolver redes difíceis)
+          // Em produção você pode remover "relay".
+          // Por enquanto mantenha para forçar TURN enquanto testa.
+          iceTransportPolicy: "relay",
           iceServers: [
-            // STUN (não faz mal manter, mas com relay ele não será usado)
             { urls: ["stun:global.stun.metered.ca:80"] },
-
-            // TURN (UDP/TCP)
             {
               urls: [
                 "turn:global.relay.metered.ca:80",
                 "turn:global.relay.metered.ca:80?transport=tcp",
                 "turn:global.relay.metered.ca:443?transport=tcp",
+                "turns:global.relay.metered.ca:443?transport=tcp",
               ],
-              username: "7e4b89de53bdfdb8819f221d",
-              credential: "KQcDy9jd6SNSohCY",
-            },
-
-            // TURNS (TLS 443) — ESSENCIAL em redes corporativas
-            {
-              urls: ["turns:global.relay.metered.ca:443?transport=tcp"],
-              username: "7e4b89de53bdfdb8819f221d",
-              credential: "KQcDy9jd6SNSohCY",
+              username: TURN_USERNAME,
+              credential: TURN_CREDENTIAL,
             },
           ],
         };
@@ -695,34 +693,111 @@
             document.body.appendChild(a);
           }
           a.srcObject = stream;
+
+          // ✅ tenta forçar play (ajuda em alguns navegadores)
+          const p = a.play();
+          if (p && typeof p.catch === "function") p.catch(() => {});
+        }
+
+        async function addIceCandidateSafe(candidate) {
+          try {
+            if (!candidate) return;
+
+            if (!pc) {
+              pendingIceCandidates.push(candidate);
+              return;
+            }
+
+            if (!pc.remoteDescription || !pc.remoteDescription.type) {
+              pendingIceCandidates.push(candidate);
+              return;
+            }
+
+            await pc.addIceCandidate(new RTCIceCandidate(candidate));
+          } catch (e) {
+            console.warn("Falha ao adicionar ICE candidate:", e);
+          }
+        }
+
+        async function flushPendingIce() {
+          if (!pc || !pc.remoteDescription || !pc.remoteDescription.type)
+            return;
+
+          const queue = pendingIceCandidates.slice();
+          pendingIceCandidates = [];
+
+          for (const c of queue) {
+            try {
+              await pc.addIceCandidate(new RTCIceCandidate(c));
+            } catch (e) {
+              console.warn("Falha ao aplicar ICE queued:", e);
+            }
+          }
+        }
+
+        function updateCallStatusFromStates() {
+          if (!pc) return;
+
+          const cs = pc.connectionState;
+          const ice = pc.iceConnectionState;
+
+          console.log("CONNECTION STATE:", cs, "| ICE:", ice);
+
+          // “Conectando…” real
+          if (callState !== "idle" && callState !== "in_call") {
+            setCallStatus("Conectando…");
+          }
+
+          // Se conectou de verdade
+          if (
+            cs === "connected" ||
+            ice === "connected" ||
+            ice === "completed"
+          ) {
+            callState = "in_call";
+            hideCallModalFn();
+            stopRingtone();
+            hangupBtn.disabled = false;
+            startCallTimer();
+          }
+
+          // Se falhou/desconectou
+          if (
+            cs === "failed" ||
+            ice === "failed" ||
+            cs === "disconnected" ||
+            cs === "closed"
+          ) {
+            cleanupCall();
+          }
         }
 
         function createPeerConnection(targetId) {
           pc = new RTCPeerConnection(rtcConfig);
 
+          // ✅ logs confiáveis
+          pc.onconnectionstatechange = updateCallStatusFromStates;
+          pc.oniceconnectionstatechange = updateCallStatusFromStates;
+
+          pc.onicecandidateerror = (e) => {
+            console.warn("ICE ERROR:", {
+              url: e.url,
+              errorCode: e.errorCode,
+              errorText: e.errorText,
+            });
+          };
+
           pc.onicecandidate = (event) => {
             if (event.candidate) {
+              // Log para ver se está saindo “relay”
+              console.log("LOCAL CANDIDATE:", event.candidate.candidate);
+
               socket.emit("ice_candidate", {
                 to: targetId,
                 from: userId,
                 candidate: event.candidate,
               });
             }
-            pc.onconnectionstatechange = () => {
-              console.log(
-                "Estado conexão:",
-                pc.connectionState,
-                event.candidate.candidate,
-              );
-
-              if (
-                pc.connectionState === "failed" ||
-                pc.connectionState === "disconnected" ||
-                pc.connectionState === "closed"
-              ) {
-                cleanupCall();
-              }
-            };
           };
 
           pc.ontrack = (event) => {
@@ -737,23 +812,25 @@
           stopRingtone();
           stopCallTimer();
           setCallStatus("");
-          hideCallModal();
+          hideCallModalFn();
+
+          pendingIceCandidates = [];
 
           if (pc) {
             try {
               pc.ontrack = null;
               pc.onicecandidate = null;
               pc.onconnectionstatechange = null;
+              pc.oniceconnectionstatechange = null;
+              pc.onicecandidateerror = null;
               pc.close();
             } catch {}
           }
-
           pc = null;
 
           if (localStream) {
             localStream.getTracks().forEach((track) => track.stop());
           }
-
           localStream = null;
 
           callState = "idle";
@@ -774,27 +851,23 @@
         }
 
         // Botões do modal
-        cancelCallBtn.addEventListener("click", () => {
-          // ✅ cancela chamada saindo e fecha nos dois
-          hangup(callPeerId, true);
-        });
-
-        declineCallBtn.addEventListener("click", () => {
-          // ✅ recusa chamada e avisa quem ligou
-          hangup(callPeerId, true);
-        });
+        cancelCallBtn.addEventListener("click", () => hangup(callPeerId, true));
+        declineCallBtn.addEventListener("click", () =>
+          hangup(callPeerId, true),
+        );
 
         acceptCallBtn.addEventListener("click", async () => {
           if (!pendingOfferFrom || !pendingOffer) return;
 
           try {
             stopRingtone();
-            callState = "in_call";
-            hangupBtn.disabled = false;
 
             callPeerId = pendingOfferFrom;
+            callState = "in_call"; // vai virar in_call real quando conectar; aqui só “em processo”
             setCallStatus("Conectando…");
-            hideCallModal();
+            hideCallModalFn();
+
+            hangupBtn.disabled = false;
 
             await startLocalAudio();
             createPeerConnection(callPeerId);
@@ -802,6 +875,8 @@
             await pc.setRemoteDescription(
               new RTCSessionDescription(pendingOffer),
             );
+            await flushPendingIce(); // ✅ aplica candidates que chegaram antes do accept
+
             const answer = await pc.createAnswer();
             await pc.setLocalDescription(answer);
 
@@ -811,9 +886,7 @@
               answer,
             });
 
-            // ✅ timer inicia ao aceitar
-            startCallTimer();
-
+            // NÃO inicia timer aqui — só quando conectar de verdade
             pendingOfferFrom = null;
             pendingOffer = null;
           } catch (e) {
@@ -834,14 +907,13 @@
 
             hangupBtn.disabled = false;
 
-            setModalMode("outgoing"); // ✅ só Cancelar
+            setModalMode("outgoing");
             setCallStatus("Chamando…");
-            showCallModal(
+            showCallModalFn(
               "📞 Chamando…",
               `Ligando para ${currentUserName || "usuário"}…`,
             );
 
-            // ✅ ringback enquanto chama
             playRingtone();
 
             await startLocalAudio();
@@ -865,9 +937,7 @@
           }
         });
 
-        hangupBtn.addEventListener("click", () => {
-          hangup(callPeerId, true);
-        });
+        hangupBtn.addEventListener("click", () => hangup(callPeerId, true));
 
         // Recebe oferta de chamada
         socket.on("call_offer", (data) => {
@@ -875,7 +945,6 @@
           const fromName = data.from_name || "Usuário";
           const offer = data.offer;
 
-          // se já está em chamada, recusa automaticamente
           if (callState !== "idle") {
             socket.emit("hangup", { to: from, from: userId });
             return;
@@ -886,11 +955,10 @@
           pendingOffer = offer;
           callPeerId = from;
 
-          setModalMode("incoming"); // ✅ Aceitar/Recusar
+          setModalMode("incoming");
           setCallStatus("Recebendo chamada…");
-          showCallModal("📞 Chamada recebida", `${fromName} está te ligando`);
+          showCallModalFn("📞 Chamada recebida", `${fromName} está te ligando`);
 
-          // ✅ toca ringtone (loop)
           playRingtone();
         });
 
@@ -898,37 +966,33 @@
         socket.on("call_answer", async (data) => {
           if (!pc) return;
           try {
+            setCallStatus("Conectando…");
             await pc.setRemoteDescription(
               new RTCSessionDescription(data.answer),
             );
-            callState = "in_call";
-            hideCallModal();
+            await flushPendingIce(); // ✅ aplica candidates que chegaram cedo
 
-            // ✅ parar ringback e iniciar timer
+            // quando realmente conectar, updateCallStatusFromStates inicia timer
+            hideCallModalFn();
             stopRingtone();
-            startCallTimer();
           } catch (e) {
             console.error(e);
             hangup(callPeerId, true);
           }
         });
 
-        // ICE candidates
+        // ICE candidates (✅ agora NÃO perde)
         socket.on("ice_candidate", async (data) => {
-          if (!pc) return;
-          try {
-            await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
-          } catch (e) {
-            console.warn("ICE error:", e);
-          }
+          if (!data || !data.candidate) return;
+
+          // Log para ver se está chegando relay
+          console.log("REMOTE CANDIDATE:", data.candidate.candidate);
+
+          await addIceCandidateSafe(data.candidate);
         });
 
-        // ✅ Hangup recebido (resolve: caller cancel, e encerra pros dois)
-        socket.on("hangup", () => {
-          cleanupCall();
-        });
+        socket.on("hangup", () => cleanupCall());
 
-        // Se fechar a aba, avisa o outro lado
         window.addEventListener("beforeunload", () => {
           if (callState !== "idle") {
             const target = callPeerId || currentUser || pendingOfferFrom;
@@ -940,7 +1004,6 @@
         // CHAT NORMAL
         // ================
         backBtn.addEventListener("click", () => {
-          // se estiver em call, encerra pros dois
           if (callState !== "idle") hangup(callPeerId, true);
 
           closeChatMobile();
@@ -958,10 +1021,7 @@
           input.disabled = false;
           sendBtn.disabled = false;
 
-          // ✅ habilita ligar quando tiver contato selecionado
           callBtn.disabled = false;
-
-          // encerrar só se estiver em chamada
           hangupBtn.disabled = callState === "idle";
 
           messagesDiv.innerHTML = "";
@@ -1106,7 +1166,6 @@
           }
         }
 
-        // Inicial
         loadUnread();
       });
     </script>

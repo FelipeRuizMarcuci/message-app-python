@@ -279,36 +279,33 @@ def on_stop_typing(data):
 # ---------------- CHAMADAS (WebRTC signaling) ----------------
 
 @socketio.on("call_offer")
-def call_offer(data):
-    # data: {to, from, from_name, offer}
+def on_call_offer(data):
     to = data.get("to")
     if not to:
         return
-    emit("call_offer", data, room=str(to))
+    # envia para a sala do usuário destino
+    socketio.emit("call_offer", data, room=str(to))
 
 @socketio.on("call_answer")
-def call_answer(data):
-    # data: {to, from, answer}
+def on_call_answer(data):
     to = data.get("to")
     if not to:
         return
-    emit("call_answer", data, room=str(to))
+    socketio.emit("call_answer", data, room=str(to))
 
 @socketio.on("ice_candidate")
-def ice_candidate(data):
-    # data: {to, from, candidate}
+def on_ice_candidate(data):
     to = data.get("to")
     if not to:
         return
-    emit("ice_candidate", data, room=str(to))
+    socketio.emit("ice_candidate", data, room=str(to))
 
 @socketio.on("hangup")
-def hangup(data):
-    # data: {to, from}
+def on_hangup(data):
     to = data.get("to")
     if not to:
         return
-    emit("hangup", data, room=str(to))
+    socketio.emit("hangup", data, room=str(to))
 
 
 # ---------------- MAIN ----------------
