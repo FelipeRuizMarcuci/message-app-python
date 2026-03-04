@@ -1,209 +1,345 @@
 import os
 import random
 import re
-import sqlite3
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
-from flask_socketio import SocketIO, emit, join_room, leave_room
-from flask_bcrypt import Bcrypt
 from datetime import datetime
+from collections import defaultdict
+from threading import Lock
 
+from flask import (
+    Flask,
+    render_template,
+    request,
+    redirect,
+    url_for,
+    session,
+    flash,
+    jsonify,
+)
+from flask_socketio import SocketIO, emit, join_room
+from flask_bcrypt import Bcrypt
+from werkzeug.utils import secure_filename
+
+from sqlalchemy import func, or_, and_
+from sqlalchemy.exc import IntegrityError
+
+from models import db, User, Message
+
+# ---------------- APP ----------------
 app = Flask(__name__)
 app.secret_key = "chave_super_secreta"
 
-# --- Banco de dados SQLite ---
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-DB_PATH = os.path.join(BASE_DIR, 'database.db')
+DB_PATH = os.path.join(BASE_DIR, "database.db")
 
-# --- Socket & Criptografia ---
+app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{DB_PATH}"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+db.init_app(app)
+
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
 bcrypt = Bcrypt(app)
 
-# ------------------ Função auxiliar ------------------
-def get_db_connection():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+# ---------------- PRESENCE (ONLINE/OFFLINE) ----------------
+# Suporta múltiplas abas e reconexões sem "piscar" online/offline
+online_users = set()
+sid_to_user = {}
+user_to_sids = defaultdict(set)
+presence_lock = Lock()
 
-# Cria tabelas se não existirem
-with get_db_connection() as conn:
-    cur = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL
-        )
-    """)
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS messages (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            sender_id INTEGER NOT NULL,
-            receiver_id INTEGER NOT NULL,
-            text TEXT NOT NULL,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            seen BOOLEAN DEFAULT FALSE
-        )
-    """)
-    conn.commit()
+with app.app_context():
+    db.create_all()
+
+print(User.__table__.columns.keys())
+
+# ---------------- UPLOADS ----------------
+UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
+
+
+def allowed_file(filename: str) -> bool:
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+# ---------------- HELPERS ----------------
+def load_prohibited_words():
+    whitelist_path = os.path.join(BASE_DIR, "whitelist.txt")
+    if os.path.exists(whitelist_path):
+        with open(whitelist_path, "r", encoding="utf-8") as f:
+            return [linha.strip().lower() for linha in f if linha.strip()]
+    return []
+
+
+def username_filter_with_whitelist(username: str) -> str:
+    palavras_proibidas = load_prohibited_words()
+
+    substituicoes = {
+        "a": "[a@4ÀÁÂÃÄÅàáâãäå]",
+        "e": "[e3ÈÉÊËèéêë]",
+        "i": "[i1!ÌÍÎÏìíîï]",
+        "o": "[o0ÒÓÔÕÖòóôõö]",
+        "u": "[uùúûüÙÚÛÜ]",
+        "c": "[cçÇ]",
+        "s": "[s5$]",
+        "t": "[t7+]",
+        "b": "[b8]",
+        "g": "[g9]",
+        "z": "[z2]",
+    }
+
+    def gerar_regex(palavra: str):
+        regex = ""
+        for char in palavra:
+            regex += substituicoes.get(char.lower(), re.escape(char.lower()))
+        return re.compile(regex, re.IGNORECASE)
+
+    padroes = [gerar_regex(p) for p in palavras_proibidas if len(p) > 2]
+    nome_limpo = (username or "").lower()
+
+    contem_proibida = any(p.search(nome_limpo) for p in padroes)
+    if contem_proibida:
+        return f"Usuário {random.randint(100, 999)}"
+
+    return username
+
+
+@app.teardown_appcontext
+def shutdown_session(exception=None):
+    db.session.remove()
 
 
 # ---------------- ROTAS ----------------
-
-@app.route('/')
+@app.route("/")
 def home():
-    if 'user_id' in session:
-        return redirect(url_for('chat'))
-    return redirect(url_for('login'))
+    if "user_id" in session:
+        return redirect(url_for("chat"))
+    return redirect(url_for("login"))
+
 
 # -------- CADASTRO --------
-@app.route('/register', methods=['GET', 'POST'])
+@app.route("/register", methods=["GET", "POST"])
 def register():
-    if request.method == 'POST':
-        username = request.form['username'].strip()
-        password = request.form['password']
-        hashed_pw = bcrypt.generate_password_hash(password).decode('utf-8')
+    if request.method == "POST":
+        username = request.form["username"].strip()
+        password = request.form["password"]
+        hashed_pw = bcrypt.generate_password_hash(password).decode("utf-8")
 
-        # ----------------- Filtro com whitelist -----------------
-        whitelist_path = os.path.join(BASE_DIR, "whitelist.txt")
+        username = username_filter_with_whitelist(username)
 
-        if os.path.exists(whitelist_path):
-            with open(whitelist_path, "r", encoding="utf-8") as f:
-                palavras_proibidas = [linha.strip().lower() for linha in f if linha.strip()]
-        else:
-            palavras_proibidas = []
-
-        # Mapeamento de substituições comuns (leet)
-        substituicoes = {
-            "a": "[a@4ÀÁÂÃÄÅàáâãäå]",
-            "e": "[e3ÈÉÊËèéêë]",
-            "i": "[i1!ÌÍÎÏìíîï]",
-            "o": "[o0ÒÓÔÕÖòóôõö]",
-            "u": "[uùúûüÙÚÛÜ]",
-            "c": "[cçÇ]",
-            "s": "[s5$]",
-            "t": "[t7+]",
-            "b": "[b8]",
-            "g": "[g9]",
-            "z": "[z2]"
-        }
-
-        def gerar_regex(palavra):
-            """Transforma a palavra proibida em regex que pega variações"""
-            regex = ""
-            for char in palavra:
-                regex += substituicoes.get(char.lower(), char.lower())
-            return re.compile(regex, re.IGNORECASE)
-
-        # Gera lista de regexs de palavras proibidas
-        padroes = [gerar_regex(p) for p in palavras_proibidas if len(p) > 2]
-
-        # Verifica se o nome do usuário contém alguma palavra proibida
-        nome_limpo = username.lower()
-        contem_proibida = any(p.search(nome_limpo) for p in padroes)
-
-        if contem_proibida:
-            username = f"Usuário {random.randint(100, 999)}"
-
-        # ----------------- Fim do filtro -----------------
-
-        conn = get_db_connection()
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM users WHERE username = ?", (username,))
-        if cur.fetchone():
+        if User.query.filter_by(username=username).first():
             flash("Usuário já existe!", "warning")
-            conn.close()
-            return redirect(url_for('register'))
+            return redirect(url_for("register"))
 
-        cur.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed_pw))
-        conn.commit()
-        conn.close()
+        user = User(
+            username=username,
+            password=hashed_pw,
+            display_name=username,  # obrigatório
+            status_text="",
+            avatar_url=None,
+        )
 
-        # Login automático
-        session['user_id'] = cur.lastrowid
-        session['username'] = username
+        try:
+            db.session.add(user)
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            flash("Usuário já existe!", "warning")
+            return redirect(url_for("register"))
 
-        # Notifica todos os usuários conectados que um novo usuário entrou
-        socketio.emit("user_joined", {"id": session['user_id'], "username": username})
+        session["user_id"] = user.id
+        session["username"] = user.username
 
-        return redirect(url_for('chat'))
+        # envia dados completos para o chat criar contato bonitinho
+        socketio.emit(
+            "user_joined",
+            {
+                "id": user.id,
+                "username": user.username,
+                "display_name": user.display_name,
+                "avatar_url": user.avatar_url,
+            },
+        )
+        return redirect(url_for("chat"))
 
-    return render_template('register.html')
+    return render_template("register.html")
+
 
 # -------- LOGIN --------
-@app.route('/login', methods=['GET', 'POST'])
+@app.route("/login", methods=["GET", "POST"])
 def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
 
-        conn = get_db_connection()
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM users WHERE username = ?", (username,))
-        user = cur.fetchone()
-        conn.close()
+        user = User.query.filter_by(username=username).first()
 
-        if user and bcrypt.check_password_hash(user['password'], password):
-            session['user_id'] = user['id']
-            session['username'] = user['username']
-            return redirect(url_for('chat'))
+        if user and bcrypt.check_password_hash(user.password, password):
+            session["user_id"] = user.id
+            session["username"] = user.username
+            return redirect(url_for("chat"))
         else:
             flash("Usuário ou senha incorretos.", "danger")
 
-    return render_template('login.html')
+    return render_template("login.html")
 
-@app.route('/logout')
+
+@app.route("/logout")
 def logout():
     session.clear()
     flash("Você saiu da conta.", "info")
-    return redirect(url_for('login'))
+    return redirect(url_for("login"))
+
 
 # -------- CHAT PRINCIPAL --------
-@app.route('/chat')
+@app.route("/chat")
 def chat():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
+    if "user_id" not in session:
+        return redirect(url_for("login"))
 
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("SELECT id, username FROM users WHERE id != ?", (session['user_id'],))
-    users = cur.fetchall()
-    conn.close()
+    my_id = int(session["user_id"])
+    me = User.query.get(my_id)
+    users = User.query.filter(User.id != my_id).all()
 
-    return render_template('chat.html', username=session['username'], users=users)
+    return render_template(
+        "chat.html",
+        username=session.get("username", ""),
+        users=users,
+        me=me,
+    )
+
+
+# -------- META DA LISTA (preview + hora) --------
+@app.route("/contacts_meta")
+def contacts_meta():
+    if "user_id" not in session:
+        return jsonify({})
+
+    my_id = int(session["user_id"])
+
+    others = User.query.filter(User.id != my_id).all()
+    meta = {}
+
+    for u in others:
+        last = (
+            Message.query.filter(
+                or_(
+                    and_(Message.sender_id == my_id, Message.receiver_id == u.id),
+                    and_(Message.sender_id == u.id, Message.receiver_id == my_id),
+                )
+            )
+            .order_by(Message.created_at.desc())
+            .first()
+        )
+
+        meta[u.id] = {
+            "last_text": (last.text if last else ""),
+            "last_at": (last.created_at.isoformat() if last and last.created_at else None),
+        }
+
+    return jsonify(meta)
+
+
+# -------- ONLINE USERS (fallback HTTP) --------
+@app.route("/online_users")
+def online_users_api():
+    with presence_lock:
+        return jsonify(list(online_users))
+
+
+# -------- PERFIL --------
+@app.route("/profile", methods=["GET", "POST"])
+def profile():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    user_id = int(session["user_id"])
+    me = User.query.get(user_id)
+
+    if not me:
+        session.clear()
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        display_name = request.form.get("display_name", "").strip()
+        status_text = request.form.get("status_text", "").strip()
+
+        file = request.files.get("avatar")
+        avatar_url = None
+
+        if file and file.filename:
+            if not allowed_file(file.filename):
+                flash("Formato inválido. Use PNG/JPG/JPEG/WEBP.", "warning")
+                return redirect(url_for("profile"))
+
+            filename = secure_filename(file.filename)
+            ext = filename.rsplit(".", 1)[1].lower()
+            final_name = f"user_{user_id}.{ext}"
+            save_path = os.path.join(UPLOAD_FOLDER, final_name)
+            file.save(save_path)
+            avatar_url = f"/static/uploads/{final_name}"
+
+        if display_name:
+            me.display_name = display_name
+        me.status_text = status_text
+
+        if avatar_url is not None:
+            me.avatar_url = avatar_url
+
+        db.session.commit()
+        flash("Perfil atualizado com sucesso!", "success")
+        return redirect(url_for("profile"))
+
+    return render_template("profile.html", me=me)
+
 
 # -------- API DE MENSAGENS --------
-@app.route('/messages/<int:receiver_id>')
+@app.route("/messages/<int:receiver_id>")
 def get_messages(receiver_id):
-    if 'user_id' not in session:
+    if "user_id" not in session:
         return jsonify([])
 
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("""
-        SELECT sender_id, text, created_at, seen FROM messages
-        WHERE (sender_id = ? AND receiver_id = ?)
-           OR (sender_id = ? AND receiver_id = ?)
-        ORDER BY created_at ASC
-    """, (session['user_id'], receiver_id, receiver_id, session['user_id']))
-    messages = cur.fetchall()
-    conn.close()
+    my_id = int(session["user_id"])
 
-    return jsonify([dict(row) for row in messages])
+    msgs = (
+        Message.query.filter(
+            ((Message.sender_id == my_id) & (Message.receiver_id == receiver_id))
+            | ((Message.sender_id == receiver_id) & (Message.receiver_id == my_id))
+        )
+        .order_by(Message.created_at.asc())
+        .all()
+    )
 
-@app.route('/unread_counts')
+    return jsonify(
+        [
+            {
+                "sender_id": int(m.sender_id),
+                "receiver_id": int(m.receiver_id),
+                "text": m.text,
+                "created_at": m.created_at.isoformat() if m.created_at else None,
+                "seen": bool(m.seen),
+            }
+            for m in msgs
+        ]
+    )
+
+
+@app.route("/unread_counts")
 def unread_counts():
-    if 'user_id' not in session:
+    if "user_id" not in session:
         return jsonify({})
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("""
-        SELECT sender_id, COUNT(*) as count FROM messages
-        WHERE receiver_id = ? AND seen = 0
-        GROUP BY sender_id
-    """, (session['user_id'],))
-    counts = {row['sender_id']: row['count'] for row in cur.fetchall()}
-    conn.close()
-    return jsonify(counts)
+
+    my_id = int(session["user_id"])
+
+    rows = (
+        db.session.query(Message.sender_id, func.count(Message.id))
+        .filter(Message.receiver_id == my_id, Message.seen == False)  # noqa: E712
+        .group_by(Message.sender_id)
+        .all()
+    )
+
+    return jsonify({int(sender_id): int(count) for sender_id, count in rows})
+
 
 # ---------------- SOCKET.IO ----------------
 @socketio.on("join")
@@ -211,39 +347,84 @@ def handle_join(data):
     user_id = data.get("user_id") or session.get("user_id")
     if not user_id:
         return
+
+    user_id = int(user_id)
+    sid = request.sid
+
+    with presence_lock:
+        sid_to_user[sid] = user_id
+        was_online = user_id in online_users
+        user_to_sids[user_id].add(sid)
+        online_users.add(user_id)
+
     join_room(str(user_id))
-    print(f"✅ Usuário {user_id} entrou na sala {user_id}")
+
+    # Só dispara "online=True" quando era OFFLINE antes
+    if not was_online:
+        socketio.emit("presence", {"user_id": user_id, "online": True})
+
+    # Ajuda a UI a sincronizar rápido (sem inconsistência)
+    emit("online_list", {"online": list(online_users)})
+
+
+@socketio.on("disconnect")
+def handle_disconnect():
+    sid = request.sid
+
+    with presence_lock:
+        uid = sid_to_user.pop(sid, None)
+        if uid is None:
+            return
+
+        sids = user_to_sids.get(uid)
+        if sids and sid in sids:
+            sids.remove(sid)
+
+        # se acabou todas as conexões desse usuário => offline
+        if not sids:
+            user_to_sids.pop(uid, None)
+            if uid in online_users:
+                online_users.discard(uid)
+                socketio.emit("presence", {"user_id": uid, "online": False})
+
 
 @socketio.on("send_message")
 def handle_send_message(data):
-    message = data.get("message")
+    message_text = data.get("message")
     receiver_id = data.get("receiver_id")
     sender_id = session.get("user_id")
     sender_name = session.get("username")
-    timestamp = datetime.now()
 
-    if not all([message, receiver_id, sender_id]):
+    if not all([message_text, receiver_id, sender_id]):
         return
 
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("""
-        INSERT INTO messages (sender_id, receiver_id, text, created_at, seen)
-        VALUES (?, ?, ?, ?, 0)
-    """, (sender_id, receiver_id, message, timestamp))
-    conn.commit()
-    conn.close()
+    try:
+        receiver_id = int(receiver_id)
+        sender_id = int(sender_id)
+    except Exception:
+        return
+
+    msg = Message(
+        sender_id=sender_id,
+        receiver_id=receiver_id,
+        text=message_text,
+        created_at=datetime.utcnow(),
+        seen=False,
+    )
+    db.session.add(msg)
+    db.session.commit()
 
     emit(
         "receive_message",
         {
             "sender_id": sender_id,
             "sender_name": sender_name,
-            "message": message,
-            "receiver_id": receiver_id
+            "message": message_text,
+            "receiver_id": receiver_id,
         },
         room=str(receiver_id),
     )
+
 
 @socketio.on("mark_as_read")
 def mark_as_read(data):
@@ -251,15 +432,22 @@ def mark_as_read(data):
     receiver_id = session.get("user_id")
     if not all([sender_id, receiver_id]):
         return
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("""
-        UPDATE messages
-        SET seen = 1
-        WHERE sender_id = ? AND receiver_id = ? AND seen = 0
-    """, (sender_id, receiver_id))
-    conn.commit()
-    conn.close()
+
+    try:
+        sender_id = int(sender_id)
+        receiver_id = int(receiver_id)
+    except Exception:
+        return
+
+    (
+        Message.query.filter_by(
+            sender_id=sender_id,
+            receiver_id=receiver_id,
+            seen=False,
+        ).update({"seen": True})
+    )
+    db.session.commit()
+
 
 @socketio.on("typing")
 def on_typing(data):
@@ -267,24 +455,29 @@ def on_typing(data):
     sender_id = session.get("user_id")
     sender_name = session.get("username")
     if receiver_id and sender_id:
-        emit("typing", {"sender_id": sender_id, "sender_name": sender_name}, room=str(receiver_id))
+        emit(
+            "typing",
+            {"sender_id": int(sender_id), "sender_name": sender_name},
+            room=str(receiver_id),
+        )
+
 
 @socketio.on("stop_typing")
 def on_stop_typing(data):
     receiver_id = data.get("receiver_id")
     sender_id = session.get("user_id")
     if receiver_id and sender_id:
-        emit("stop_typing", {"sender_id": sender_id}, room=str(receiver_id))
+        emit("stop_typing", {"sender_id": int(sender_id)}, room=str(receiver_id))
+
 
 # ---------------- CHAMADAS (WebRTC signaling) ----------------
-
 @socketio.on("call_offer")
 def on_call_offer(data):
     to = data.get("to")
     if not to:
         return
-    # envia para a sala do usuário destino
     socketio.emit("call_offer", data, room=str(to))
+
 
 @socketio.on("call_answer")
 def on_call_answer(data):
@@ -293,12 +486,14 @@ def on_call_answer(data):
         return
     socketio.emit("call_answer", data, room=str(to))
 
+
 @socketio.on("ice_candidate")
 def on_ice_candidate(data):
     to = data.get("to")
     if not to:
         return
     socketio.emit("ice_candidate", data, room=str(to))
+
 
 @socketio.on("hangup")
 def on_hangup(data):

@@ -1,40 +1,46 @@
+# models.py
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
 db = SQLAlchemy()
 
-# ---------------- USUÁRIOS ----------------
 class User(db.Model):
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
+
     username = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
-    messages_sent = db.relationship("Message", backref="sender", lazy=True)
 
-# ---------------- CONVERSAS ----------------
-class Conversation(db.Model):
-    __tablename__ = "conversations"
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    members = db.relationship("ConversationMember", backref="conversation", lazy=True)
-    messages = db.relationship("Message", backref="conversation", lazy=True)
+    display_name = db.Column(db.String(255), nullable=False, default="")
+    status_text = db.Column(db.String(255), nullable=True)
+    avatar_url = db.Column(db.String(255), nullable=True)
 
-class ConversationMember(db.Model):
-    __tablename__ = "conversation_members"
-    id = db.Column(db.Integer, primary_key=True)
-    conversation_id = db.Column(db.Integer, db.ForeignKey("conversations.id"), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    sent_messages = db.relationship(
+        "Message",
+        foreign_keys="Message.sender_id",
+        backref="sender",
+        lazy=True,
+        cascade="all, delete-orphan",
+    )
+    received_messages = db.relationship(
+        "Message",
+        foreign_keys="Message.receiver_id",
+        backref="receiver",
+        lazy=True,
+        cascade="all, delete-orphan",
+    )
 
-# ---------------- MENSAGENS ----------------
 class Message(db.Model):
     __tablename__ = "messages"
     id = db.Column(db.Integer, primary_key=True)
-    conversation_id = db.Column(db.Integer, db.ForeignKey("conversations.id"), nullable=False)
+
     sender_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    receiver_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+
     text = db.Column(db.Text, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    seen = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    seen = db.Column(db.Boolean, default=False, nullable=False)
 
 
 # ========================== FUNÇÕES AUXILIARES ==========================
@@ -54,25 +60,25 @@ def create_user(username, password_hash):
 
 
 # -------- CONVERSAS --------
-def get_conversation_members(conversation_id):
-    members = (
-        db.session.query(User.id, User.username)
-        .join(ConversationMember, ConversationMember.user_id == User.id)
-        .filter(ConversationMember.conversation_id == conversation_id)
-        .all()
-    )
-    return [{"id": m.id, "username": m.username} for m in members]
+# def get_conversation_members(conversation_id):
+#     members = (
+#         db.session.query(User.id, User.username)
+#         .join(ConversationMember, ConversationMember.user_id == User.id)
+#         .filter(ConversationMember.conversation_id == conversation_id)
+#         .all()
+#     )
+#     return [{"id": m.id, "username": m.username} for m in members]
 
-def create_conversation(name=None):
-    conv = Conversation(name=name)
-    db.session.add(conv)
-    db.session.commit()
-    return conv.id
+# def create_conversation(name=None):
+#     conv = Conversation(name=name)
+#     db.session.add(conv)
+#     db.session.commit()
+#     return conv.id
 
-def add_user_to_conversation(conversation_id, user_id):
-    member = ConversationMember(conversation_id=conversation_id, user_id=user_id)
-    db.session.add(member)
-    db.session.commit()
+# def add_user_to_conversation(conversation_id, user_id):
+#     member = ConversationMember(conversation_id=conversation_id, user_id=user_id)
+#     db.session.add(member)
+#     db.session.commit()
 
 
 # -------- MENSAGENS --------

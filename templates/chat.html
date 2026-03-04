@@ -42,7 +42,7 @@
         min-height: 100svh;
       }
 
-      /* Sidebar */
+      /* ===== Sidebar ===== */
       .sidebar {
         width: clamp(260px, 30vw, 420px);
         background-color: var(--sidebarBg);
@@ -50,14 +50,66 @@
         display: flex;
         flex-direction: column;
         min-width: 240px;
+        position: relative;
       }
 
       .sidebar-header {
         background-color: var(--green);
         color: #fff;
-        padding: 15px;
+        padding: 12px 15px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .sidebar-title {
         font-size: 18px;
         font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        white-space: nowrap;
+      }
+
+      /* menu ⋮ (somente mobile) */
+      .sidebar-menu-btn {
+        display: none;
+        border: none;
+        background: rgba(255, 255, 255, 0.18);
+        color: #fff;
+        border-radius: 10px;
+        padding: 8px 10px;
+        cursor: pointer;
+        font-weight: 900;
+        line-height: 1;
+      }
+
+      .sidebar-dropdown {
+        position: absolute;
+        top: 56px;
+        right: 14px;
+        background: #fff;
+        border: 1px solid #e7e7e7;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+        overflow: hidden;
+        display: none;
+        min-width: 160px;
+        z-index: 50;
+      }
+      .sidebar-dropdown.show {
+        display: block;
+      }
+      .sidebar-dropdown a {
+        display: block;
+        padding: 12px 14px;
+        color: #222;
+        text-decoration: none;
+        font-weight: 700;
+      }
+      .sidebar-dropdown a:hover {
+        background: #f5f5f5;
       }
 
       .contact-list {
@@ -77,14 +129,101 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        padding: 12px 15px;
         text-decoration: none;
         color: #333;
-        padding: 14px 15px;
-        transition: background 0.2s;
-        gap: 12px;
+        gap: 10px;
       }
       .contact-list a:hover {
         background-color: #f5f5f5;
+      }
+
+      /* ===== Contact row (WhatsApp-like) ===== */
+      .contact-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+        flex: 1;
+      }
+
+      .avatar-wrap {
+        position: relative;
+        width: 44px;
+        height: 44px;
+        flex: 0 0 44px;
+      }
+
+      .contact-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        object-fit: cover;
+        background: #ddd;
+        display: block;
+      }
+
+      .presence-dot {
+        position: absolute;
+        right: 0px;
+        bottom: 0px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #bbb;
+        border: 2px solid #fff;
+        display: none; /* só aparece quando online */
+      }
+
+      .avatar-wrap.online .presence-dot {
+        display: block;
+        background: #25d366;
+      }
+
+      .contact-meta {
+        min-width: 0;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .contact-topline {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        min-width: 0;
+      }
+
+      .contact-name {
+        font-weight: 800;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        min-width: 0;
+      }
+
+      .contact-time {
+        font-size: 12px;
+        color: #777;
+        flex: 0 0 auto;
+        white-space: nowrap;
+      }
+
+      .contact-bottomline {
+        display: flex;
+        align-items: center;
+        min-width: 0;
+      }
+
+      .contact-preview {
+        font-size: 13px;
+        color: #666;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        min-width: 0;
       }
 
       .badge {
@@ -97,7 +236,63 @@
         text-align: center;
       }
 
-      /* Chat principal */
+      /* ===== Sidebar footer (desktop) ===== */
+      .sidebar-footer {
+        border-top: 1px solid #eee;
+        padding: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .me-avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 999px;
+        object-fit: cover;
+        background: #ddd;
+        flex: 0 0 auto;
+      }
+
+      .me-meta {
+        min-width: 0;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .me-name {
+        font-weight: 900;
+        font-size: 14px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .me-status {
+        font-size: 12px;
+        color: #666;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .profile-btn {
+        border: none;
+        border-radius: 999px;
+        padding: 9px 12px;
+        cursor: pointer;
+        font-weight: 900;
+        background: #f2f2f2;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+      }
+      .profile-btn:hover {
+        background: #e9e9e9;
+      }
+
+      /* ===== Chat area ===== */
       .chat-area {
         flex: 1;
         display: flex;
@@ -141,7 +336,6 @@
         cursor: pointer;
         font-weight: 800;
       }
-
       .call-btn.call {
         background: rgba(255, 255, 255, 0.18);
         color: #fff;
@@ -150,7 +344,6 @@
         background: rgba(255, 80, 80, 0.85);
         color: #fff;
       }
-
       .call-btn:disabled {
         opacity: 0.5;
         cursor: not-allowed;
@@ -174,13 +367,11 @@
         word-wrap: break-word;
         overflow-wrap: anywhere;
       }
-
       .message.you {
         background-color: #dcf8c6;
         float: right;
         border-bottom-right-radius: 6px;
       }
-
       .message.other {
         background-color: #fff;
         float: left;
@@ -232,7 +423,7 @@
         background: #f0f0f0;
       }
 
-      /* Modal simples de chamada */
+      /* ===== Modal call ===== */
       .call-modal {
         position: fixed;
         inset: 0;
@@ -266,6 +457,7 @@
         margin: 0 0 14px;
         font-size: 14px;
       }
+
       .call-row {
         display: flex;
         gap: 10px;
@@ -287,7 +479,7 @@
         color: #fff;
       }
 
-      /* ====== TABLET ====== */
+      /* ===== TABLET ===== */
       @media (max-width: 900px) {
         .sidebar {
           width: 320px;
@@ -295,7 +487,7 @@
         }
       }
 
-      /* ====== MOBILE ====== */
+      /* ===== MOBILE ===== */
       @media (max-width: 720px) {
         html,
         body {
@@ -318,6 +510,13 @@
           z-index: 1;
         }
 
+        .sidebar-footer {
+          display: none;
+        }
+        .sidebar-menu-btn {
+          display: inline-flex;
+        }
+
         .chat-area {
           position: fixed;
           inset: 0;
@@ -334,6 +533,7 @@
         .chat-container.show-chat .sidebar {
           display: none;
         }
+
         .back-btn {
           display: inline-flex;
         }
@@ -366,22 +566,91 @@
     <div class="chat-container">
       <!-- Sidebar -->
       <div class="sidebar">
-        <div class="sidebar-header">💬 Minhas conversas</div>
+        <div class="sidebar-header">
+          <div class="sidebar-title">💬 Minhas conversas</div>
+
+          <button
+            id="sidebarMenuBtn"
+            class="sidebar-menu-btn"
+            type="button"
+            aria-label="Menu"
+          >
+            ⋮
+          </button>
+
+          <div id="sidebarDropdown" class="sidebar-dropdown">
+            <a href="{{ url_for('profile') }}">👤 Perfil</a>
+          </div>
+        </div>
+
         <ul class="contact-list">
           {% for u in users %}
           <li>
             <a
               href="#"
               class="user-link"
-              data-id="{{ u[0] }}"
-              data-name="{{ u[1]|e }}"
+              data-id="{{ u.id }}"
+              data-name="{{ (u.display_name if u.display_name else u.username)|e }}"
             >
-              <span>{{ u[1] }}</span>
-              <span id="badge_{{ u[0] }}" class="badge"></span>
+              <div class="contact-left">
+                <div class="avatar-wrap" data-presence-id="{{ u.id }}">
+                  <img
+                    class="contact-avatar"
+                    src="{{ u.avatar_url if u.avatar_url else '/static/uploads/default.png' }}"
+                    alt="Avatar"
+                    onerror="this.src = '/static/uploads/default.png'"
+                  />
+                  <span class="presence-dot" aria-hidden="true"></span>
+                </div>
+
+                <div class="contact-meta">
+                  <div class="contact-topline">
+                    <span class="contact-name">
+                      {{ u.display_name if u.display_name else u.username }}
+                    </span>
+                    <span class="contact-time" id="time_{{ u.id }}"></span>
+                  </div>
+
+                  <div class="contact-bottomline">
+                    <span
+                      class="contact-preview"
+                      id="preview_{{ u.id }}"
+                    ></span>
+                  </div>
+                </div>
+              </div>
+
+              <span id="badge_{{ u.id }}" class="badge"></span>
             </a>
           </li>
           {% endfor %}
         </ul>
+
+        <div class="sidebar-footer">
+          {% set me_name = (me.display_name if me and me.display_name else
+          (me.username if me else 'Você')) %} {% set me_status = (me.status_text
+          if me and me.status_text else 'Sem recado') %} {% set me_avatar =
+          (me.avatar_url if me and me.avatar_url else
+          '/static/uploads/default.png') %}
+
+          <img
+            class="me-avatar"
+            src="{{ me_avatar }}"
+            alt="Avatar"
+            onerror="this.style.display = 'none'"
+          />
+          <div class="me-meta">
+            <div class="me-name">{{ me_name }}</div>
+            <div class="me-status">{{ me_status }}</div>
+          </div>
+
+          <button
+            class="profile-btn go-link"
+            data-href="{{ url_for('profile') }}"
+          >
+            ⚙️ Perfil
+          </button>
+        </div>
       </div>
 
       <!-- Chat principal -->
@@ -389,12 +658,52 @@
         <div class="chat-header">
           <button id="backBtn" class="back-btn" type="button">←</button>
 
-          <div style="display: flex; flex-direction: column; line-height: 1.1">
-            <div id="chatHeader">Selecione uma conversa</div>
+          <div
+            class="chat-head-left"
+            style="display: flex; align-items: center; gap: 10px; min-width: 0"
+          >
+            <img
+              id="chatAvatar"
+              src="/static/uploads/default.png"
+              alt="Avatar"
+              style="
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                object-fit: cover;
+                display: none;
+                background: #ddd;
+              "
+              onerror="this.style.display = 'none'"
+            />
+
             <div
-              id="callStatus"
-              style="font-weight: 600; font-size: 12px; opacity: 0.9"
-            ></div>
+              style="
+                display: flex;
+                flex-direction: column;
+                line-height: 1.1;
+                min-width: 0;
+              "
+            >
+              <div
+                id="chatHeader"
+                style="
+                  white-space: nowrap;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                "
+              >
+                Selecione uma conversa
+              </div>
+              <div
+                id="chatPresence"
+                style="font-weight: 600; font-size: 12px; opacity: 0.9"
+              ></div>
+              <div
+                id="callStatus"
+                style="font-weight: 600; font-size: 12px; opacity: 0.9"
+              ></div>
+            </div>
           </div>
 
           <div class="call-actions">
@@ -452,7 +761,6 @@
       </div>
     </div>
 
-    <!-- Notificação sonora mensagem -->
     <audio id="messageSound" preload="auto">
       <source
         src="{{ url_for('static', filename='sounds/notification.mp3') }}"
@@ -460,7 +768,6 @@
       />
     </audio>
 
-    <!-- Ringtone / Ringback -->
     <audio id="ringtoneSound" preload="auto" loop>
       <source
         src="{{ url_for('static', filename='sounds/ringtone.mp3') }}"
@@ -483,14 +790,41 @@
         const input = document.getElementById("messageInput");
         const sendBtn = document.getElementById("sendBtn");
         const chatHeader = document.getElementById("chatHeader");
+        const chatPresence = document.getElementById("chatPresence");
+        const chatAvatar = document.getElementById("chatAvatar");
         const callStatus = document.getElementById("callStatus");
         const typingIndicator = document.getElementById("typingIndicator");
         const backBtn = document.getElementById("backBtn");
 
+        // mobile menu ⋮
+        const sidebarMenuBtn = document.getElementById("sidebarMenuBtn");
+        const sidebarDropdown = document.getElementById("sidebarDropdown");
+
+        function toggleSidebarMenu() {
+          sidebarDropdown.classList.toggle("show");
+        }
+        function closeSidebarMenu() {
+          sidebarDropdown.classList.remove("show");
+        }
+        if (sidebarMenuBtn) {
+          sidebarMenuBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            toggleSidebarMenu();
+          });
+          document.addEventListener("click", closeSidebarMenu);
+        }
+
+        // botão perfil
+        document.querySelectorAll(".go-link").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const href = btn.dataset.href;
+            if (href) window.location.href = href;
+          });
+        });
+
         const messageSound = document.getElementById("messageSound");
         const ringtoneSound = document.getElementById("ringtoneSound");
 
-        // Call UI
         const callBtn = document.getElementById("callBtn");
         const hangupBtn = document.getElementById("hangupBtn");
         const callModal = document.getElementById("callModal");
@@ -500,7 +834,6 @@
         const declineCallBtn = document.getElementById("declineCallBtn");
         const cancelCallBtn = document.getElementById("cancelCallBtn");
 
-        // --------- helpers UI ----------
         function openChatMobile() {
           container.classList.add("show-chat");
         }
@@ -525,12 +858,10 @@
         function hideCallModalFn() {
           callModal.classList.remove("show");
         }
-
         function setCallStatus(text) {
           callStatus.textContent = text || "";
         }
 
-        // Mostrar botões corretos no modal (WhatsApp-like)
         function setModalMode(mode) {
           const isIncoming = mode === "incoming";
           acceptCallBtn.style.display = isIncoming ? "inline-flex" : "none";
@@ -538,7 +869,80 @@
           cancelCallBtn.style.display = !isIncoming ? "inline-flex" : "none";
         }
 
-        // --------- audio unlock (mobile autoplay restrictions) ----------
+        // ===== META (preview/hora) + PRESENÇA (online) =====
+        function formatTime(iso) {
+          if (!iso) return "";
+          const d = new Date(iso);
+          if (Number.isNaN(d.getTime())) return "";
+          return d.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        }
+
+        function setContactMeta(contactId, text, isoTime) {
+          const prev = document.getElementById(`preview_${contactId}`);
+          const time = document.getElementById(`time_${contactId}`);
+          if (prev) prev.textContent = (text || "").trim();
+          if (time) time.textContent = formatTime(isoTime);
+        }
+
+        function isUserOnline(id) {
+          const wrap = document.querySelector(
+            `.avatar-wrap[data-presence-id="${id}"]`,
+          );
+          return !!wrap && wrap.classList.contains("online");
+        }
+
+        function setPresence(id, online) {
+          const wrap = document.querySelector(
+            `.avatar-wrap[data-presence-id="${id}"]`,
+          );
+          if (wrap) {
+            wrap.classList.toggle("online", !!online);
+          }
+
+          // Se o chat aberto é com esse usuário, atualiza o header
+          if (currentUser && Number(currentUser) === Number(id)) {
+            chatPresence.textContent = online ? "Online" : "";
+          }
+        }
+
+        async function loadContactsMeta() {
+          try {
+            const res = await fetch("/contacts_meta");
+            if (!res.ok) return;
+            const meta = await res.json();
+            for (const [id, info] of Object.entries(meta || {})) {
+              setContactMeta(id, info.last_text, info.last_at);
+            }
+          } catch {}
+        }
+
+        async function loadInitialOnline() {
+          try {
+            const res = await fetch("/online_users");
+            if (!res.ok) return;
+            const list = await res.json();
+
+            // zera todos como offline para evitar "sobras"
+            document
+              .querySelectorAll(".avatar-wrap[data-presence-id]")
+              .forEach((el) => el.classList.remove("online"));
+
+            // marca online
+            (list || []).forEach((id) => setPresence(id, true));
+
+            // se já tiver chat aberto, atualiza topo
+            if (currentUser) {
+              chatPresence.textContent = isUserOnline(currentUser)
+                ? "Online"
+                : "";
+            }
+          } catch {}
+        }
+
+        // audio unlock
         let audioUnlocked = false;
         function unlockAudio() {
           if (audioUnlocked) return;
@@ -577,13 +981,11 @@
           messageSound.currentTime = 0;
           messageSound.play().catch(() => {});
         }
-
         function playRingtone() {
           unlockAudio();
           ringtoneSound.currentTime = 0;
           ringtoneSound.play().catch(() => {});
         }
-
         function stopRingtone() {
           try {
             ringtoneSound.pause();
@@ -591,12 +993,11 @@
           } catch {}
         }
 
-        // --------- call timer ----------
+        // timer
         let callTimer = null;
         let callSeconds = 0;
-
         function startCallTimer() {
-          if (callTimer) return; // não inicia 2x
+          if (callTimer) return;
           callSeconds = 0;
           callTimer = setInterval(() => {
             callSeconds++;
@@ -605,7 +1006,6 @@
             setCallStatus(`Em chamada • ${mm}:${ss}`);
           }, 1000);
         }
-
         function stopCallTimer() {
           if (callTimer) clearInterval(callTimer);
           callTimer = null;
@@ -617,6 +1017,8 @@
           currentUserName = null;
 
           chatHeader.textContent = "Selecione uma conversa";
+          chatPresence.textContent = "";
+          chatAvatar.style.display = "none";
           setCallStatus("");
 
           input.disabled = true;
@@ -633,9 +1035,21 @@
           `;
         }
 
-        // --------- socket connect ----------
         socket.on("connect", () => {
           socket.emit("join", { user_id: userId });
+          // puxa status inicial ao conectar
+          loadInitialOnline();
+        });
+
+        // Atualizações em tempo real
+        socket.on("presence", (data) => {
+          if (!data) return;
+          setPresence(data.user_id, data.online);
+        });
+
+        // Se seu backend não emite online_list, não tem problema.
+        socket.on("online_list", (data) => {
+          (data?.online || []).forEach((id) => setPresence(id, true));
         });
 
         // =====================
@@ -644,22 +1058,17 @@
         let pc = null;
         let localStream = null;
 
-        let callState = "idle"; // idle | calling | ringing | in_call
+        let callState = "idle";
         let pendingOfferFrom = null;
         let pendingOffer = null;
-
         let callPeerId = null;
 
-        // ✅ FILA DE ICE (não perder candidates)
         let pendingIceCandidates = [];
 
-        // ⚠️ Troque por credenciais NOVAS do Metered
         const TURN_USERNAME = "536947f76d5875ce42116279";
         const TURN_CREDENTIAL = "YORZ0/GA4l7kWQE1";
 
         const rtcConfig = {
-          // Em produção você pode remover "relay".
-          // Por enquanto mantenha para forçar TURN enquanto testa.
           iceTransportPolicy: "relay",
           iceServers: [
             { urls: ["stun:global.stun.metered.ca:80"] },
@@ -693,8 +1102,6 @@
             document.body.appendChild(a);
           }
           a.srcObject = stream;
-
-          // ✅ tenta forçar play (ajuda em alguns navegadores)
           const p = a.play();
           if (p && typeof p.catch === "function") p.catch(() => {});
         }
@@ -702,53 +1109,39 @@
         async function addIceCandidateSafe(candidate) {
           try {
             if (!candidate) return;
-
-            if (!pc) {
+            if (!pc || !pc.remoteDescription || !pc.remoteDescription.type) {
               pendingIceCandidates.push(candidate);
               return;
             }
-
-            if (!pc.remoteDescription || !pc.remoteDescription.type) {
-              pendingIceCandidates.push(candidate);
-              return;
-            }
-
             await pc.addIceCandidate(new RTCIceCandidate(candidate));
           } catch (e) {
-            console.warn("Falha ao adicionar ICE candidate:", e);
+            console.warn("Falha ao adicionar ICE:", e);
           }
         }
 
         async function flushPendingIce() {
           if (!pc || !pc.remoteDescription || !pc.remoteDescription.type)
             return;
-
           const queue = pendingIceCandidates.slice();
           pendingIceCandidates = [];
-
           for (const c of queue) {
             try {
               await pc.addIceCandidate(new RTCIceCandidate(c));
             } catch (e) {
-              console.warn("Falha ao aplicar ICE queued:", e);
+              console.warn("ICE queued falhou:", e);
             }
           }
         }
 
         function updateCallStatusFromStates() {
           if (!pc) return;
-
           const cs = pc.connectionState;
           const ice = pc.iceConnectionState;
 
-          console.log("CONNECTION STATE:", cs, "| ICE:", ice);
-
-          // “Conectando…” real
           if (callState !== "idle" && callState !== "in_call") {
             setCallStatus("Conectando…");
           }
 
-          // Se conectou de verdade
           if (
             cs === "connected" ||
             ice === "connected" ||
@@ -761,7 +1154,6 @@
             startCallTimer();
           }
 
-          // Se falhou/desconectou
           if (
             cs === "failed" ||
             ice === "failed" ||
@@ -775,7 +1167,6 @@
         function createPeerConnection(targetId) {
           pc = new RTCPeerConnection(rtcConfig);
 
-          // ✅ logs confiáveis
           pc.onconnectionstatechange = updateCallStatusFromStates;
           pc.oniceconnectionstatechange = updateCallStatusFromStates;
 
@@ -789,9 +1180,6 @@
 
           pc.onicecandidate = (event) => {
             if (event.candidate) {
-              // Log para ver se está saindo “relay”
-              console.log("LOCAL CANDIDATE:", event.candidate.candidate);
-
               socket.emit("ice_candidate", {
                 to: targetId,
                 from: userId,
@@ -813,7 +1201,6 @@
           stopCallTimer();
           setCallStatus("");
           hideCallModalFn();
-
           pendingIceCandidates = [];
 
           if (pc) {
@@ -828,9 +1215,7 @@
           }
           pc = null;
 
-          if (localStream) {
-            localStream.getTracks().forEach((track) => track.stop());
-          }
+          if (localStream) localStream.getTracks().forEach((t) => t.stop());
           localStream = null;
 
           callState = "idle";
@@ -844,13 +1229,11 @@
 
         function hangup(toId = null, notify = true) {
           const target = toId || callPeerId || currentUser || pendingOfferFrom;
-          if (notify && target) {
+          if (notify && target)
             socket.emit("hangup", { to: target, from: userId });
-          }
           cleanupCall();
         }
 
-        // Botões do modal
         cancelCallBtn.addEventListener("click", () => hangup(callPeerId, true));
         declineCallBtn.addEventListener("click", () =>
           hangup(callPeerId, true),
@@ -861,12 +1244,9 @@
 
           try {
             stopRingtone();
-
             callPeerId = pendingOfferFrom;
-            callState = "in_call"; // vai virar in_call real quando conectar; aqui só “em processo”
             setCallStatus("Conectando…");
             hideCallModalFn();
-
             hangupBtn.disabled = false;
 
             await startLocalAudio();
@@ -875,7 +1255,7 @@
             await pc.setRemoteDescription(
               new RTCSessionDescription(pendingOffer),
             );
-            await flushPendingIce(); // ✅ aplica candidates que chegaram antes do accept
+            await flushPendingIce();
 
             const answer = await pc.createAnswer();
             await pc.setLocalDescription(answer);
@@ -886,7 +1266,6 @@
               answer,
             });
 
-            // NÃO inicia timer aqui — só quando conectar de verdade
             pendingOfferFrom = null;
             pendingOffer = null;
           } catch (e) {
@@ -896,7 +1275,6 @@
           }
         });
 
-        // Botões do header
         callBtn.addEventListener("click", async () => {
           if (!currentUser) return alert("Selecione um contato para ligar.");
           if (callState !== "idle") return;
@@ -904,7 +1282,6 @@
           try {
             callState = "calling";
             callPeerId = currentUser;
-
             hangupBtn.disabled = false;
 
             setModalMode("outgoing");
@@ -939,7 +1316,6 @@
 
         hangupBtn.addEventListener("click", () => hangup(callPeerId, true));
 
-        // Recebe oferta de chamada
         socket.on("call_offer", (data) => {
           const from = Number(data.from);
           const fromName = data.from_name || "Usuário";
@@ -962,7 +1338,6 @@
           playRingtone();
         });
 
-        // Recebe resposta (quem ligou)
         socket.on("call_answer", async (data) => {
           if (!pc) return;
           try {
@@ -970,9 +1345,7 @@
             await pc.setRemoteDescription(
               new RTCSessionDescription(data.answer),
             );
-            await flushPendingIce(); // ✅ aplica candidates que chegaram cedo
-
-            // quando realmente conectar, updateCallStatusFromStates inicia timer
+            await flushPendingIce();
             hideCallModalFn();
             stopRingtone();
           } catch (e) {
@@ -981,13 +1354,8 @@
           }
         });
 
-        // ICE candidates (✅ agora NÃO perde)
         socket.on("ice_candidate", async (data) => {
           if (!data || !data.candidate) return;
-
-          // Log para ver se está chegando relay
-          console.log("REMOTE CANDIDATE:", data.candidate.candidate);
-
           await addIceCandidateSafe(data.candidate);
         });
 
@@ -1018,6 +1386,21 @@
 
           chatHeader.textContent = "💬 " + currentUserName;
 
+          // avatar no topo: reaproveita o avatar da lista
+          const link = document.querySelector(
+            `.user-link[data-id="${currentUser}"]`,
+          );
+          const img = link ? link.querySelector(".contact-avatar") : null;
+          if (img && img.src) {
+            chatAvatar.src = img.src;
+            chatAvatar.style.display = "block";
+          } else {
+            chatAvatar.style.display = "none";
+          }
+
+          // ✅ presença no topo: decide na hora (sem depender do evento)
+          chatPresence.textContent = isUserOnline(currentUser) ? "Online" : "";
+
           input.disabled = false;
           sendBtn.disabled = false;
 
@@ -1046,12 +1429,14 @@
           openChatMobile();
         }
 
-        document.querySelectorAll(".user-link").forEach((link) => {
+        function bindUserLink(link) {
           link.addEventListener("click", async (e) => {
             e.preventDefault();
             await openConversation(link.dataset.id, link.dataset.name);
           });
-        });
+        }
+
+        document.querySelectorAll(".user-link").forEach(bindUserLink);
 
         sendBtn.addEventListener("click", () => {
           const msg = input.value.trim();
@@ -1062,6 +1447,9 @@
           div.textContent = msg;
           messagesDiv.appendChild(div);
           scrollMessages();
+
+          // atualiza preview/hora na lista
+          setContactMeta(currentUser, msg, new Date().toISOString());
 
           socket.emit("send_message", {
             message: msg,
@@ -1080,7 +1468,6 @@
 
         input.addEventListener("input", () => {
           if (!currentUser) return;
-
           socket.emit("typing", { receiver_id: currentUser });
 
           if (typingTimeout) clearTimeout(typingTimeout);
@@ -1094,6 +1481,9 @@
           const messageText = data.message || "";
 
           if (senderId === Number(userId)) return;
+
+          // sempre atualiza preview/hora no contato
+          setContactMeta(senderId, messageText, new Date().toISOString());
 
           const isChatOpenForThisSender =
             currentUser && senderId === Number(currentUser);
@@ -1124,26 +1514,48 @@
         });
 
         socket.on("user_joined", (user) => {
-          const existing = document.querySelector(`[data-id="${user.id}"]`);
+          const existing = document.querySelector(
+            `.user-link[data-id="${user.id}"]`,
+          );
           if (existing) return;
 
           const ul = document.querySelector(".contact-list");
           const li = document.createElement("li");
+
+          const safeName = user.display_name || user.username || "Usuário";
+          const avatar = user.avatar_url || "/static/uploads/default.png";
+
           li.innerHTML = `
-            <a href="#" class="user-link" data-id="${user.id}" data-name="${user.username}">
-              <span>${user.username}</span>
+            <a href="#" class="user-link" data-id="${user.id}" data-name="${safeName}">
+              <div class="contact-left">
+                <div class="avatar-wrap" data-presence-id="${user.id}">
+                  <img class="contact-avatar" src="${avatar}" alt="Avatar" onerror="this.src='/static/uploads/default.png'"/>
+                  <span class="presence-dot" aria-hidden="true"></span>
+                </div>
+                <div class="contact-meta">
+                  <div class="contact-topline">
+                    <span class="contact-name">${safeName}</span>
+                    <span class="contact-time" id="time_${user.id}"></span>
+                  </div>
+                  <div class="contact-bottomline">
+                    <span class="contact-preview" id="preview_${user.id}"></span>
+                  </div>
+                </div>
+              </div>
               <span id="badge_${user.id}" class="badge"></span>
             </a>
           `;
-          ul.appendChild(li);
 
-          li.querySelector(".user-link").addEventListener(
-            "click",
-            async (e) => {
-              e.preventDefault();
-              await openConversation(user.id, user.username);
-            },
-          );
+          ul.appendChild(li);
+          bindUserLink(li.querySelector(".user-link"));
+
+          // ✅ marca online se já estiver online no backend
+          fetch("/online_users")
+            .then((r) => r.json())
+            .then((list) => {
+              if ((list || []).includes(user.id)) setPresence(user.id, true);
+            })
+            .catch(() => {});
         });
 
         async function loadUnread() {
@@ -1156,7 +1568,6 @@
             document
               .querySelectorAll('[id^="badge_"]')
               .forEach((el) => (el.textContent = ""));
-
             for (const [id, count] of Object.entries(data || {})) {
               const badge = document.getElementById(`badge_${id}`);
               if (badge) badge.textContent = count > 0 ? `${count}` : "";
@@ -1166,7 +1577,10 @@
           }
         }
 
+        // init
         loadUnread();
+        loadContactsMeta();
+        loadInitialOnline();
       });
     </script>
   </body>

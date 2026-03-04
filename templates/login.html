@@ -47,6 +47,37 @@
         line-height: 1.2;
       }
 
+      .flash {
+        margin: 0 0 12px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        font-size: 14px;
+        text-align: left;
+        border: 1px solid #eee;
+        background: #f7f7f7;
+        color: #333;
+      }
+      .flash.danger {
+        border-color: rgba(229, 57, 53, 0.35);
+        background: rgba(229, 57, 53, 0.08);
+        color: #b71c1c;
+      }
+      .flash.warning {
+        border-color: rgba(255, 152, 0, 0.35);
+        background: rgba(255, 152, 0, 0.12);
+        color: #8d4b00;
+      }
+      .flash.info {
+        border-color: rgba(33, 150, 243, 0.35);
+        background: rgba(33, 150, 243, 0.1);
+        color: #0d47a1;
+      }
+      .flash.success {
+        border-color: rgba(76, 175, 80, 0.35);
+        background: rgba(76, 175, 80, 0.1);
+        color: #1b5e20;
+      }
+
       input,
       button {
         width: 100%;
@@ -117,6 +148,11 @@
   <body>
     <form method="POST" autocomplete="on">
       <h2>Entrar no Chat</h2>
+
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %} {% for category, message in messages %}
+      <div class="flash {{ category }}">{{ message }}</div>
+      {% endfor %} {% endif %} {% endwith %}
 
       <input
         type="text"
