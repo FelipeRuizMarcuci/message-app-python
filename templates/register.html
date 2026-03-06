@@ -33,9 +33,7 @@
         padding: 28px 26px;
         border-radius: 12px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-
         width: min(92vw, 360px);
-
         text-align: center;
       }
 
@@ -123,7 +121,6 @@
         text-decoration: underline;
       }
 
-      /* Ajustes para telas pequenas */
       @media (max-width: 360px) {
         body {
           padding: 14px;
@@ -166,11 +163,29 @@
       />
 
       <input
+        type="email"
+        name="email"
+        placeholder="E-mail"
+        required
+        autocomplete="email"
+      />
+
+      <input
         type="password"
         name="password"
         placeholder="Senha"
         required
         autocomplete="new-password"
+        minlength="6"
+      />
+
+      <input
+        type="password"
+        name="confirm_password"
+        placeholder="Confirmar senha"
+        required
+        autocomplete="new-password"
+        minlength="6"
       />
 
       <button type="submit">Cadastrar</button>

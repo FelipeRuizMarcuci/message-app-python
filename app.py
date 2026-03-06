@@ -40,7 +40,6 @@ socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
 bcrypt = Bcrypt(app)
 
 # ---------------- PRESENCE (ONLINE/OFFLINE) ----------------
-# Suporta múltiplas abas e reconexões sem "piscar" online/offline
 online_users = set()
 sid_to_user = {}
 user_to_sids = defaultdict(set)
@@ -104,6 +103,29 @@ def username_filter_with_whitelist(username: str) -> str:
     return username
 
 
+def user_is_online(user_id: int) -> bool:
+    with presence_lock:
+        return int(user_id) in online_users
+
+
+def message_status_for_user(message, viewer_id: int) -> str:
+    """
+    Status retornado para o frontend.
+    - read: mensagem visualizada
+    - delivered: destinatário online (aproximação para histórico)
+    - sent: apenas enviada
+    """
+    if bool(message.seen):
+        return "read"
+
+    # só faz sentido mostrar status especial para mensagens que eu enviei
+    if int(message.sender_id) == int(viewer_id):
+        if user_is_online(int(message.receiver_id)):
+            return "delivered"
+
+    return "sent"
+
+
 @app.teardown_appcontext
 def shutdown_session(exception=None):
     db.session.remove()
@@ -121,20 +143,47 @@ def home():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
-        username = request.form["username"].strip()
-        password = request.form["password"]
-        hashed_pw = bcrypt.generate_password_hash(password).decode("utf-8")
+        EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+        username = (request.form.get("username") or "").strip()
+        email = (request.form.get("email") or "").strip().lower()
+        password = request.form.get("password") or ""
+        confirm_password = request.form.get("confirm_password") or ""
+
+        if not username or not email or not password or not confirm_password:
+            flash("Preencha todos os campos.", "warning")
+            return redirect(url_for("register"))
+
+        if not EMAIL_RE.match(email):
+            flash("E-mail inválido.", "warning")
+            return redirect(url_for("register"))
+
+        if password != confirm_password:
+            flash("As senhas não conferem.", "danger")
+            return redirect(url_for("register"))
+
+        if len(password) < 6:
+            flash("A senha deve ter pelo menos 6 caracteres.", "warning")
+            return redirect(url_for("register"))
 
         username = username_filter_with_whitelist(username)
 
-        if User.query.filter_by(username=username).first():
-            flash("Usuário já existe!", "warning")
+        exists = User.query.filter(
+            or_(User.username == username, User.email == email)
+        ).first()
+        if exists:
+            if exists.username == username:
+                flash("Usuário já existe!", "warning")
+            else:
+                flash("E-mail já está em uso!", "warning")
             return redirect(url_for("register"))
+
+        hashed_pw = bcrypt.generate_password_hash(password).decode("utf-8")
 
         user = User(
             username=username,
+            email=email,
             password=hashed_pw,
-            display_name=username,  # obrigatório
+            display_name=username,
             status_text="",
             avatar_url=None,
         )
@@ -144,13 +193,13 @@ def register():
             db.session.commit()
         except IntegrityError:
             db.session.rollback()
-            flash("Usuário já existe!", "warning")
+            flash("Não foi possível cadastrar. Tente outro usuário/e-mail.", "danger")
             return redirect(url_for("register"))
 
         session["user_id"] = user.id
         session["username"] = user.username
+        session["email"] = user.email
 
-        # envia dados completos para o chat criar contato bonitinho
         socketio.emit(
             "user_joined",
             {
@@ -158,8 +207,10 @@ def register():
                 "username": user.username,
                 "display_name": user.display_name,
                 "avatar_url": user.avatar_url,
+                "status_text": user.status_text or "",
             },
         )
+
         return redirect(url_for("chat"))
 
     return render_template("register.html")
@@ -169,14 +220,15 @@ def register():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
+        email = (request.form.get("email") or "").strip().lower()
+        password = request.form.get("password") or ""
 
-        user = User.query.filter_by(username=username).first()
+        user = User.query.filter_by(email=email).first()
 
         if user and bcrypt.check_password_hash(user.password, password):
             session["user_id"] = user.id
             session["username"] = user.username
+            session["email"] = user.email
             return redirect(url_for("chat"))
         else:
             flash("Usuário ou senha incorretos.", "danger")
@@ -216,7 +268,6 @@ def contacts_meta():
         return jsonify({})
 
     my_id = int(session["user_id"])
-
     others = User.query.filter(User.id != my_id).all()
     meta = {}
 
@@ -234,7 +285,9 @@ def contacts_meta():
 
         meta[u.id] = {
             "last_text": (last.text if last else ""),
-            "last_at": (last.created_at.isoformat() if last and last.created_at else None),
+            "last_at": (
+                last.created_at.isoformat() if last and last.created_at else None
+            ),
         }
 
     return jsonify(meta)
@@ -313,11 +366,13 @@ def get_messages(receiver_id):
     return jsonify(
         [
             {
+                "id": int(m.id),
                 "sender_id": int(m.sender_id),
                 "receiver_id": int(m.receiver_id),
                 "text": m.text,
                 "created_at": m.created_at.isoformat() if m.created_at else None,
                 "seen": bool(m.seen),
+                "status": message_status_for_user(m, my_id),
             }
             for m in msgs
         ]
@@ -359,11 +414,9 @@ def handle_join(data):
 
     join_room(str(user_id))
 
-    # Só dispara "online=True" quando era OFFLINE antes
     if not was_online:
         socketio.emit("presence", {"user_id": user_id, "online": True})
 
-    # Ajuda a UI a sincronizar rápido (sem inconsistência)
     emit("online_list", {"online": list(online_users)})
 
 
@@ -380,7 +433,6 @@ def handle_disconnect():
         if sids and sid in sids:
             sids.remove(sid)
 
-        # se acabou todas as conexões desse usuário => offline
         if not sids:
             user_to_sids.pop(uid, None)
             if uid in online_users:
@@ -390,10 +442,11 @@ def handle_disconnect():
 
 @socketio.on("send_message")
 def handle_send_message(data):
-    message_text = data.get("message")
+    message_text = (data.get("message") or "").strip()
     receiver_id = data.get("receiver_id")
     sender_id = session.get("user_id")
-    sender_name = session.get("username")
+    sender_name = session.get("username") or ""
+    temp_id = data.get("temp_id")
 
     if not all([message_text, receiver_id, sender_id]):
         return
@@ -414,22 +467,46 @@ def handle_send_message(data):
     db.session.add(msg)
     db.session.commit()
 
-    emit(
-        "receive_message",
+    payload = {
+        "id": int(msg.id),
+        "sender_id": sender_id,
+        "sender_name": sender_name,
+        "message": message_text,
+        "receiver_id": receiver_id,
+        "created_at": msg.created_at.isoformat() if msg.created_at else None,
+        "seen": False,
+    }
+
+    # Confirma ao remetente que a mensagem foi salva/enviada
+    socketio.emit(
+        "message_sent",
         {
-            "sender_id": sender_id,
-            "sender_name": sender_name,
-            "message": message_text,
-            "receiver_id": receiver_id,
+            "temp_id": temp_id,
+            "message_id": int(msg.id),
+            "created_at": msg.created_at.isoformat() if msg.created_at else None,
         },
-        room=str(receiver_id),
+        room=str(sender_id),
     )
+
+    # Entrega ao destinatário
+    socketio.emit("receive_message", payload, room=str(receiver_id))
+
+    # Se o destinatário está online, marca como entregue visualmente no remetente
+    if user_is_online(receiver_id):
+        socketio.emit(
+            "message_delivered",
+            {
+                "message_id": int(msg.id),
+            },
+            room=str(sender_id),
+        )
 
 
 @socketio.on("mark_as_read")
 def mark_as_read(data):
     sender_id = data.get("sender_id")
     receiver_id = session.get("user_id")
+
     if not all([sender_id, receiver_id]):
         return
 
@@ -439,14 +516,35 @@ def mark_as_read(data):
     except Exception:
         return
 
-    (
+    unread_messages = (
         Message.query.filter_by(
             sender_id=sender_id,
             receiver_id=receiver_id,
             seen=False,
-        ).update({"seen": True})
+        )
+        .order_by(Message.id.asc())
+        .all()
     )
+
+    if not unread_messages:
+        return
+
+    message_ids = [int(m.id) for m in unread_messages]
+
+    for msg in unread_messages:
+        msg.seen = True
+
     db.session.commit()
+
+    # Notifica o remetente original que essas mensagens foram visualizadas
+    socketio.emit(
+        "messages_read",
+        {
+            "message_ids": message_ids,
+            "reader_id": receiver_id,
+        },
+        room=str(sender_id),
+    )
 
 
 @socketio.on("typing")

@@ -7,11 +7,10 @@ db = SQLAlchemy()
 class User(db.Model):
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
-
     username = db.Column(db.String(50), unique=True, nullable=False)
+    email = username = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
-
-    display_name = db.Column(db.String(255), nullable=False, default="")
+    display_name = db.Column(db.String(255), nullable=False)
     status_text = db.Column(db.String(255), nullable=True)
     avatar_url = db.Column(db.String(255), nullable=True)
 
