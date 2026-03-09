@@ -2959,11 +2959,29 @@
           }
         });
 
-        declineCallBtn.addEventListener("click", () =>
-          hangupPrivate(callPeerId, true),
-        );
+        declineCallBtn.addEventListener("click", () => {
+          if (pendingGroupInvite) {
+            pendingGroupInvite = null;
+            stopRingtone();
+            hideCallModalFn();
+            return;
+          }
+
+          hangupPrivate(callPeerId, true);
+        });
 
         acceptCallBtn.addEventListener("click", async () => {
+          if (pendingGroupInvite) {
+            stopRingtone();
+
+            const invite = pendingGroupInvite;
+            pendingGroupInvite = null;
+
+            await joinGroupCall(invite.groupId, invite.groupName, false);
+            hideCallModalFn();
+            return;
+          }
+
           if (!pendingOfferFrom || !pendingOffer) return;
 
           try {
@@ -3110,6 +3128,12 @@
           }
 
           groupPc.onconnectionstatechange = () => {
+            if (groupPc.connectionState === "connected") {
+              stopRingtone();
+              startCallTimer();
+              setCallStatus(`Em chamada no grupo ${groupCallState.groupName}`);
+              updateReturnToCallBar();
+            }
             if (
               ["failed", "disconnected", "closed"].includes(
                 groupPc.connectionState,
@@ -3216,6 +3240,7 @@
           groupCallState.joined = false;
 
           if (callState === "idle") setCallStatus("");
+          stopCallTimer();
           hideCallModalFn();
           updateHangupButtonVisibility();
           updateReturnToCallBar();
@@ -3296,19 +3321,32 @@
 
         socket.on("hangup", () => cleanupPrivateCall());
 
-        socket.on("group_call_invite", async (data) => {
+        let pendingGroupInvite = null;
+
+        socket.on("group_call_invite", (data) => {
           const gid = Number(data.group_id);
           const gname = data.group_name || "Grupo";
           const fromName = data.from_name || "Usuário";
 
           if (groupCallState.active) return;
 
-          const ok = confirm(
-            `${fromName} convidou você para a chamada do grupo "${gname}". Entrar?`,
-          );
-          if (!ok) return;
+          pendingGroupInvite = {
+            groupId: gid,
+            groupName: gname,
+            fromName,
+          };
 
-          await joinGroupCall(gid, gname, false);
+          setModalMode("incoming");
+          callTitle.textContent = "👥 Chamada em grupo";
+          callSub.textContent = `${fromName} convidou você para ${gname}`;
+          callTimerText.textContent = "";
+          callPeerAvatar.src = "/static/uploads/default.png";
+
+          showCallModalFn(
+            "👥 Chamada em grupo",
+            `${fromName} convidou você para ${gname}`,
+          );
+          playRingtone();
         });
 
         socket.on("group_call_participants", async (data) => {
