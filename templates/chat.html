@@ -594,6 +594,53 @@
         width: min(320px, 100%);
       }
 
+      .audio-player {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: #e2ffc7;
+        padding: 8px 12px;
+        border-radius: 18px;
+        min-width: 200px;
+        max-width: 260px;
+      }
+
+      .message.other .audio-player {
+        background: #ffffff;
+      }
+
+      .audio-play-btn {
+        border: none;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: #25d366;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+      }
+
+      .audio-progress {
+        flex: 1;
+        height: 4px;
+        background: #ccc;
+        border-radius: 999px;
+        overflow: hidden;
+        cursor: pointer;
+      }
+
+      .audio-progress-bar {
+        height: 100%;
+        width: 0%;
+        background: #075e54;
+      }
+
+      .audio-time {
+        font-size: 12px;
+        color: #555;
+        min-width: 40px;
+      }
+
       .message-file-link {
         display: inline-flex;
         align-items: center;
@@ -1041,6 +1088,431 @@
       .btn-primary {
         background: var(--badge);
         color: #fff;
+      }
+
+      .group-helper-text {
+        font-size: 12px;
+        color: #667781;
+        margin-top: -4px;
+      }
+
+      .group-media-picker {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .group-avatar-preview {
+        width: 68px;
+        height: 68px;
+        border-radius: 50%;
+        object-fit: cover;
+        background: #ddd;
+        flex: 0 0 68px;
+        border: 2px solid #eef2f5;
+      }
+
+      .group-media-picker-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex: 1;
+      }
+
+      .group-file-btn,
+      .group-secondary-btn,
+      .group-danger-btn {
+        border: none;
+        border-radius: 999px;
+        padding: 10px 16px;
+        cursor: pointer;
+        font-weight: 900;
+        font-size: 13px;
+        line-height: 1;
+        min-height: 40px;
+        transition:
+          transform 0.15s ease,
+          box-shadow 0.18s ease,
+          background 0.18s ease,
+          opacity 0.18s ease;
+        box-shadow: 0 6px 16px rgba(17, 27, 33, 0.08);
+      }
+
+      .group-file-btn:hover,
+      .group-secondary-btn:hover,
+      .group-danger-btn:hover {
+        transform: translateY(-1px);
+      }
+
+      .group-file-btn:disabled,
+      .group-secondary-btn:disabled,
+      .group-danger-btn:disabled {
+        cursor: not-allowed;
+        opacity: 0.55;
+        transform: none;
+        box-shadow: none;
+      }
+
+      .group-file-btn,
+      .group-secondary-btn {
+        background: linear-gradient(180deg, #f7fafc 0%, #eaf1f5 100%);
+        color: #1f2c34;
+      }
+
+      .group-secondary-btn.is-admin-action {
+        background: linear-gradient(180deg, #ecfdf3 0%, #daf6e6 100%);
+        color: #0f7a3d;
+      }
+
+      .group-secondary-btn.is-admin-remove {
+        background: linear-gradient(180deg, #fff7ed 0%, #feedd6 100%);
+        color: #b54708;
+      }
+
+      .group-secondary-btn.is-self-lock {
+        background: #eef3f6;
+        color: #7b8b96;
+      }
+
+      .group-danger-btn {
+        background: linear-gradient(180deg, #fff1f1 0%, #fde2e2 100%);
+        color: #c43232;
+      }
+
+      .group-form textarea,
+      .group-manage-form textarea {
+        width: 100%;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        padding: 11px 12px;
+        outline: none;
+        resize: vertical;
+        min-height: 88px;
+        font-family: inherit;
+      }
+
+      .group-manage-shell {
+        width: min(96vw, 760px);
+        max-height: 92vh;
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .group-manage-header {
+        padding: 16px 18px;
+        background: var(--green);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .group-manage-header h3 {
+        margin: 0;
+        font-size: 18px;
+      }
+
+      .group-manage-close {
+        border: none;
+        background: rgba(255, 255, 255, 0.16);
+        color: #fff;
+        border-radius: 10px;
+        padding: 8px 10px;
+        cursor: pointer;
+        font-weight: 900;
+      }
+
+      .group-manage-body {
+        padding: 18px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .group-manage-grid {
+        display: grid;
+        grid-template-columns: 1.1fr 1fr;
+        gap: 16px;
+      }
+
+      .group-section-card {
+        border: 1px solid #edf0f2;
+        border-radius: 18px;
+        padding: 16px;
+        background: #fff;
+      }
+
+      .group-section-title {
+        font-size: 13px;
+        font-weight: 900;
+        color: #667781;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        margin-bottom: 10px;
+      }
+
+      .group-members-admin-list,
+      .group-members-pick-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-height: 320px;
+        overflow-y: auto;
+      }
+
+      .group-member-admin-item,
+      .group-member-pick-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px;
+        border: 1px solid #eef2f4;
+        border-radius: 14px;
+      }
+
+      .group-member-admin-item img,
+      .group-member-pick-item img {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        object-fit: cover;
+        background: #ddd;
+        flex: 0 0 42px;
+      }
+
+      .group-member-admin-meta,
+      .group-member-pick-meta {
+        min-width: 0;
+        flex: 1;
+      }
+
+      .group-member-admin-name,
+      .group-member-pick-name {
+        font-weight: 800;
+        color: #111;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .group-member-admin-sub,
+      .group-member-pick-sub {
+        font-size: 12px;
+        color: #667781;
+      }
+
+      .group-role-badge {
+        border-radius: 999px;
+        padding: 6px 11px;
+        background: #e7f7ed;
+        color: #0b7a37;
+        font-weight: 900;
+        font-size: 11px;
+        box-shadow: inset 0 0 0 1px rgba(11, 122, 55, 0.08);
+      }
+
+      .group-role-badge.member {
+        background: #eef3f6;
+        color: #5d6b75;
+        box-shadow: inset 0 0 0 1px rgba(93, 107, 117, 0.08);
+      }
+
+      .group-member-admin-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .group-member-check {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--badge);
+      }
+
+      .group-panel-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .group-info-description {
+        margin-top: 8px;
+        color: #44525b;
+        font-size: 14px;
+        line-height: 1.45;
+        white-space: pre-wrap;
+      }
+
+      .group-admin-list {
+        margin-top: 8px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .group-admin-chip {
+        background: #eef7f0;
+        color: #10753d;
+        border-radius: 999px;
+        padding: 6px 10px;
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .group-empty-state {
+        font-size: 13px;
+        color: #667781;
+      }
+
+      .audio-recorder-panel {
+        display: none;
+        align-items: center;
+        gap: 10px;
+        flex: 1;
+        min-width: 0;
+        background: #fff;
+        border-radius: 999px;
+        padding: 8px 10px;
+        border: 1px solid #e5e5e5;
+      }
+
+      .audio-recorder-panel.show {
+        display: flex;
+      }
+
+      .chat-input.recording-mode #messageInput,
+      .chat-input.recording-mode #sendBtn,
+      .chat-input.recording-mode #attachBtn,
+      .chat-input.recording-mode #recordBtn {
+        display: none;
+      }
+
+      .audio-recording-pill {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #e53935;
+        flex: 0 0 12px;
+        animation: pulseDot 1.1s infinite;
+      }
+
+      .audio-wave {
+        display: inline-flex;
+        align-items: flex-end;
+        gap: 3px;
+        height: 22px;
+        flex: 0 0 auto;
+      }
+
+      .audio-wave span {
+        width: 3px;
+        border-radius: 999px;
+        background: #25d366;
+        animation: waveBar 1s infinite ease-in-out;
+      }
+
+      .audio-wave span:nth-child(1) {
+        height: 8px;
+        animation-delay: 0s;
+      }
+      .audio-wave span:nth-child(2) {
+        height: 14px;
+        animation-delay: 0.15s;
+      }
+      .audio-wave span:nth-child(3) {
+        height: 20px;
+        animation-delay: 0.3s;
+      }
+      .audio-wave span:nth-child(4) {
+        height: 12px;
+        animation-delay: 0.45s;
+      }
+      .audio-wave span:nth-child(5) {
+        height: 18px;
+        animation-delay: 0.6s;
+      }
+
+      .audio-recorder-label {
+        font-weight: 800;
+        color: #1f2c34;
+        white-space: nowrap;
+      }
+
+      .audio-recorder-timer {
+        font-weight: 900;
+        color: #e53935;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+
+      .audio-recorder-preview {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .audio-recorder-preview audio {
+        width: 100%;
+        min-width: 140px;
+      }
+
+      .audio-recorder-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-left: auto;
+      }
+
+      .audio-recorder-btn {
+        border: none;
+        border-radius: 999px;
+        padding: 9px 12px;
+        cursor: pointer;
+        font-weight: 900;
+      }
+
+      .audio-recorder-btn.cancel {
+        background: #fdeaea;
+        color: #b42318;
+      }
+
+      .audio-recorder-btn.stop {
+        background: #fff4e5;
+        color: #b54708;
+      }
+
+      .audio-recorder-btn.send {
+        background: #25d366;
+        color: #fff;
+      }
+
+      @keyframes pulseDot {
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.45;
+          transform: scale(1.15);
+        }
+      }
+
+      @keyframes waveBar {
+        0%,
+        100% {
+          transform: scaleY(0.55);
+        }
+        50% {
+          transform: scaleY(1.1);
+        }
       }
 
       .message-highlight {
@@ -1671,7 +2143,7 @@
               </button>
             </div>
 
-            <div class="chat-input">
+            <div id="chatInputBar" class="chat-input">
               <input id="fileInput" type="file" hidden />
               <button id="attachBtn" class="attach-btn" type="button">
                 📎
@@ -1680,6 +2152,54 @@
               <button id="recordBtn" class="record-btn" type="button">
                 🎙️
               </button>
+
+              <div id="audioRecorderPanel" class="audio-recorder-panel">
+                <span
+                  id="audioRecordingDot"
+                  class="audio-recording-pill"
+                ></span>
+                <div id="audioWave" class="audio-wave" aria-hidden="true">
+                  <span></span><span></span><span></span><span></span
+                  ><span></span>
+                </div>
+                <span id="audioRecorderLabel" class="audio-recorder-label"
+                  >Gravando áudio</span
+                >
+                <span id="audioRecorderTimer" class="audio-recorder-timer"
+                  >00:00</span
+                >
+                <div
+                  id="audioRecorderPreview"
+                  class="audio-recorder-preview"
+                  hidden
+                >
+                  <audio id="audioPreviewPlayer" controls></audio>
+                </div>
+                <div class="audio-recorder-actions">
+                  <button
+                    id="cancelRecordingBtn"
+                    class="audio-recorder-btn cancel"
+                    type="button"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    id="stopRecordingBtn"
+                    class="audio-recorder-btn stop"
+                    type="button"
+                  >
+                    Parar
+                  </button>
+                  <button
+                    id="sendRecordingBtn"
+                    class="audio-recorder-btn send"
+                    type="button"
+                    hidden
+                  >
+                    Enviar
+                  </button>
+                </div>
+              </div>
 
               <input
                 type="text"
@@ -1725,7 +2245,7 @@
               </div>
 
               <div class="user-info-card">
-                <div class="user-info-label">Recado</div>
+                <div class="user-info-label">Recado / descrição</div>
                 <div
                   id="userInfoStatus"
                   class="user-info-value user-info-empty"
@@ -1734,9 +2254,26 @@
                 </div>
               </div>
 
-              <div class="user-info-card">
+              <div id="groupMembersCard" class="user-info-card" hidden>
                 <div class="user-info-label">Membros</div>
                 <div id="userInfoMembers" class="user-info-value">—</div>
+              </div>
+
+              <div id="groupAdminsCard" class="user-info-card" hidden>
+                <div class="user-info-label">Admins</div>
+                <div id="userInfoAdmins" class="group-admin-list"></div>
+              </div>
+
+              <div id="groupActionsCard" class="user-info-card" hidden>
+                <div class="user-info-label">Gerenciamento</div>
+                <div class="group-panel-actions">
+                  <button id="manageGroupBtn" class="btn-primary" type="button">
+                    Gerenciar grupo
+                  </button>
+                  <div class="group-helper-text">
+                    Edite nome, foto, descrição, participantes e admins.
+                  </div>
+                </div>
               </div>
             </div>
           </aside>
@@ -1776,6 +2313,32 @@
         <h3>Criar novo grupo</h3>
 
         <form id="groupForm" class="group-form">
+          <div class="group-media-picker">
+            <img
+              id="groupAvatarPreview"
+              class="group-avatar-preview"
+              src="/static/uploads/default.png"
+              alt="Avatar do grupo"
+              onerror="this.src = '/static/uploads/default.png'"
+            />
+            <div class="group-media-picker-actions">
+              <input
+                id="groupAvatarInput"
+                type="file"
+                accept="image/*"
+                hidden
+              />
+              <button
+                id="groupAvatarPickBtn"
+                class="group-file-btn"
+                type="button"
+              >
+                Escolher foto
+              </button>
+              <div class="group-helper-text">Foto opcional.</div>
+            </div>
+          </div>
+
           <input
             id="groupNameInput"
             type="text"
@@ -1784,6 +2347,13 @@
             required
           />
 
+          <textarea
+            id="groupDescriptionInput"
+            placeholder="Descrição do grupo (opcional)"
+            maxlength="300"
+          ></textarea>
+
+          <div class="group-section-title">Participantes iniciais</div>
           <div id="groupMembersList" class="group-members-list">
             {% for u in users %}
             <label class="group-member-item">
@@ -1811,6 +2381,101 @@
             <button class="btn-primary" type="submit">Criar grupo</button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <div id="groupManageModal" class="group-modal" aria-hidden="true">
+      <div class="group-manage-shell" role="dialog" aria-modal="true">
+        <div class="group-manage-header">
+          <h3>Gerenciar grupo</h3>
+          <button
+            id="closeGroupManageModalBtn"
+            class="group-manage-close"
+            type="button"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div class="group-manage-body">
+          <form id="groupManageForm" class="group-manage-form">
+            <div class="group-manage-grid">
+              <div class="group-section-card">
+                <div class="group-section-title">Informações do grupo</div>
+
+                <div class="group-media-picker" style="margin-bottom: 14px">
+                  <img
+                    id="groupManageAvatarPreview"
+                    class="group-avatar-preview"
+                    src="/static/uploads/default.png"
+                    alt="Avatar do grupo"
+                    onerror="this.src = '/static/uploads/default.png'"
+                  />
+                  <div class="group-media-picker-actions">
+                    <input
+                      id="groupManageAvatarInput"
+                      type="file"
+                      accept="image/*"
+                      hidden
+                    />
+                    <button
+                      id="groupManageAvatarPickBtn"
+                      class="group-file-btn"
+                      type="button"
+                    >
+                      Alterar foto
+                    </button>
+                    <button
+                      id="groupManageAvatarRemoveBtn"
+                      class="group-secondary-btn"
+                      type="button"
+                    >
+                      Remover foto
+                    </button>
+                  </div>
+                </div>
+
+                <input
+                  id="groupManageNameInput"
+                  type="text"
+                  maxlength="60"
+                  placeholder="Nome do grupo"
+                  required
+                />
+                <textarea
+                  id="groupManageDescriptionInput"
+                  maxlength="300"
+                  placeholder="Descrição do grupo"
+                ></textarea>
+              </div>
+
+              <div class="group-section-card">
+                <div class="group-section-title">Adicionar participantes</div>
+                <div
+                  id="groupManagePickList"
+                  class="group-members-pick-list"
+                ></div>
+              </div>
+            </div>
+
+            <div class="group-section-card">
+              <div class="group-section-title">Participantes e admins</div>
+              <div
+                id="groupManageMembersList"
+                class="group-members-admin-list"
+              ></div>
+            </div>
+
+            <div class="group-form-actions">
+              <button id="cancelGroupManageBtn" class="btn-muted" type="button">
+                Cancelar
+              </button>
+              <button class="btn-primary" type="submit">
+                Salvar alterações
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
 
@@ -1910,12 +2575,20 @@
         let currentConversation = null;
         let currentConversationType = null;
         let currentConversationName = null;
+        let unreadTabCounters = {
+          user: 0,
+          group: 0,
+        };
         let typingTimeout = null;
         let messagesCache = [];
         let replyTarget = null;
 
         let pendingEditMessage = null;
         let pendingDeleteMessage = null;
+        let unreadCounters = {
+          user: 0,
+          group: 0,
+        };
 
         const container = document.querySelector(".chat-container");
         const chatArea = document.querySelector(".chat-area");
@@ -1925,6 +2598,23 @@
         const attachBtn = document.getElementById("attachBtn");
         const fileInput = document.getElementById("fileInput");
         const recordBtn = document.getElementById("recordBtn");
+        const chatInputBar = document.getElementById("chatInputBar");
+        const audioRecorderPanel =
+          document.getElementById("audioRecorderPanel");
+        const audioRecorderLabel =
+          document.getElementById("audioRecorderLabel");
+        const audioRecorderTimer =
+          document.getElementById("audioRecorderTimer");
+        const audioRecorderPreview = document.getElementById(
+          "audioRecorderPreview",
+        );
+        const audioPreviewPlayer =
+          document.getElementById("audioPreviewPlayer");
+        const audioWave = document.getElementById("audioWave");
+        const cancelRecordingBtn =
+          document.getElementById("cancelRecordingBtn");
+        const stopRecordingBtn = document.getElementById("stopRecordingBtn");
+        const sendRecordingBtn = document.getElementById("sendRecordingBtn");
         const chatHeader = document.getElementById("chatHeader");
         const chatPresence = document.getElementById("chatPresence");
         const chatAvatar = document.getElementById("chatAvatar");
@@ -1983,8 +2673,54 @@
         const groupModal = document.getElementById("groupModal");
         const groupForm = document.getElementById("groupForm");
         const groupNameInput = document.getElementById("groupNameInput");
+        const groupDescriptionInput = document.getElementById(
+          "groupDescriptionInput",
+        );
+        const groupAvatarInput = document.getElementById("groupAvatarInput");
+        const groupAvatarPreview =
+          document.getElementById("groupAvatarPreview");
+        const groupAvatarPickBtn =
+          document.getElementById("groupAvatarPickBtn");
         const closeGroupModalBtn =
           document.getElementById("closeGroupModalBtn");
+
+        const groupManageModal = document.getElementById("groupManageModal");
+        const closeGroupManageModalBtn = document.getElementById(
+          "closeGroupManageModalBtn",
+        );
+        const cancelGroupManageBtn = document.getElementById(
+          "cancelGroupManageBtn",
+        );
+        const groupManageForm = document.getElementById("groupManageForm");
+        const groupManageAvatarInput = document.getElementById(
+          "groupManageAvatarInput",
+        );
+        const groupManageAvatarPreview = document.getElementById(
+          "groupManageAvatarPreview",
+        );
+        const groupManageAvatarPickBtn = document.getElementById(
+          "groupManageAvatarPickBtn",
+        );
+        const groupManageAvatarRemoveBtn = document.getElementById(
+          "groupManageAvatarRemoveBtn",
+        );
+        const groupManageNameInput = document.getElementById(
+          "groupManageNameInput",
+        );
+        const groupManageDescriptionInput = document.getElementById(
+          "groupManageDescriptionInput",
+        );
+        const groupManageMembersList = document.getElementById(
+          "groupManageMembersList",
+        );
+        const groupManagePickList = document.getElementById(
+          "groupManagePickList",
+        );
+        const manageGroupBtn = document.getElementById("manageGroupBtn");
+        const groupMembersCard = document.getElementById("groupMembersCard");
+        const groupAdminsCard = document.getElementById("groupAdminsCard");
+        const groupActionsCard = document.getElementById("groupActionsCard");
+        const userInfoAdmins = document.getElementById("userInfoAdmins");
 
         const editModal = document.getElementById("editModal");
         const closeEditModalBtn = document.getElementById("closeEditModalBtn");
@@ -2004,6 +2740,15 @@
         let mediaRecorder = null;
         let recordingChunks = [];
         let isRecording = false;
+        let activeRecordingStream = null;
+        let recordedAudioFile = null;
+        let recordedAudioUrl = "";
+        let recordingTimerInterval = null;
+        let recordingStartedAt = 0;
+        let createGroupAvatarData = null;
+        let manageGroupAvatarData = null;
+        let manageGroupAvatarRemoved = false;
+        let groupDetailsCache = {};
 
         let pc = null;
         let localStream = null;
@@ -2051,6 +2796,124 @@
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
+        }
+
+        function getAllUsersDirectory() {
+          return [...document.querySelectorAll(".user-link")].map((link) => ({
+            id: Number(link.dataset.id),
+            name: link.dataset.name || `Usuário ${link.dataset.id}`,
+            status: link.dataset.status || "",
+            avatar: link.dataset.avatar || "/static/uploads/default.png",
+          }));
+        }
+
+        function getUserDirectoryMap() {
+          const map = {};
+          getAllUsersDirectory().forEach((user) => {
+            map[user.id] = user;
+          });
+          return map;
+        }
+
+        function formatDuration(seconds) {
+          const mins = String(Math.floor(seconds / 60)).padStart(2, "0");
+          const secs = String(seconds % 60).padStart(2, "0");
+          return `${mins}:${secs}`;
+        }
+
+        function fileToDataUrl(file) {
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+        }
+
+        async function handleImagePreview(inputEl, previewEl) {
+          const file = inputEl.files?.[0];
+          if (!file) return null;
+          const dataUrl = await fileToDataUrl(file);
+          previewEl.src = dataUrl;
+          return dataUrl;
+        }
+
+        function normalizeGroupDetailsFromLink(linkData) {
+          const users = getUserDirectoryMap();
+          const admins = Array.isArray(linkData.admins)
+            ? linkData.admins.map((id) => Number(id))
+            : [Number(userId)];
+          const membersDetailed = (linkData.members || []).map((id) => ({
+            user_id: Number(id),
+            role: admins.includes(Number(id)) ? "admin" : "member",
+            name: users[id]?.name || `Usuário ${id}`,
+            avatar: users[id]?.avatar || "/static/uploads/default.png",
+            status: users[id]?.status || "",
+          }));
+
+          return {
+            id: Number(linkData.id),
+            name: linkData.name || "Grupo",
+            description: linkData.description || "",
+            avatar_url: linkData.avatar || "/static/uploads/default.png",
+            members: linkData.members || [],
+            admins,
+            membersDetailed,
+          };
+        }
+
+        function updateGroupLinkDataset(group) {
+          const link = getGroupLinkById(group.id);
+          if (!link) return;
+
+          const safeAvatar = group.avatar_url || "/static/uploads/default.png";
+          const members = (group.membersDetailed || []).map((member) =>
+            Number(member.user_id),
+          );
+          const admins =
+            group.admins ||
+            (group.membersDetailed || [])
+              .filter((m) => m.role === "admin")
+              .map((m) => Number(m.user_id));
+
+          link.dataset.name = group.name || "Grupo";
+          link.dataset.status = group.description || "Grupo";
+          link.dataset.avatar = safeAvatar;
+          link.dataset.members = JSON.stringify(members);
+          link.dataset.description = group.description || "";
+          link.dataset.admins = JSON.stringify(admins);
+
+          const avatarEl = link.querySelector(".contact-avatar");
+          if (avatarEl) avatarEl.src = safeAvatar;
+
+          const badgeEl = link.querySelector(".group-avatar-badge");
+          if (badgeEl) badgeEl.textContent = String(members.length);
+
+          const nameEl = link.querySelector(".contact-name");
+          if (nameEl) nameEl.textContent = group.name || "Grupo";
+        }
+
+        async function fetchGroupDetails(groupId) {
+          const cached = groupDetailsCache[groupId];
+          if (cached) return JSON.parse(JSON.stringify(cached));
+
+          try {
+            const res = await fetch(`/groups/${groupId}/details`);
+            if (res.ok) {
+              const data = await res.json();
+              if (data?.group) {
+                groupDetailsCache[groupId] = data.group;
+                return JSON.parse(JSON.stringify(data.group));
+              }
+            }
+          } catch {}
+
+          const link = getGroupLinkById(groupId);
+          const fallback = normalizeGroupDetailsFromLink(
+            getConversationDataFromLink(link),
+          );
+          groupDetailsCache[groupId] = fallback;
+          return JSON.parse(JSON.stringify(fallback));
         }
 
         function closeSidebarMenu() {
@@ -2149,13 +3012,22 @@
             members = [];
           }
 
+          let admins = [];
+          try {
+            admins = JSON.parse(link.dataset.admins || "[]");
+          } catch {
+            admins = [];
+          }
+
           return {
             id: Number(link.dataset.id),
             type: link.dataset.conversationType || "",
             name: link.dataset.name || "Usuário",
             status: link.dataset.status || "",
+            description: link.dataset.description || "",
             avatar: link.dataset.avatar || "/static/uploads/default.png",
             members,
+            admins,
           };
         }
 
@@ -2185,16 +3057,35 @@
           userInfoType.textContent =
             data.type === "group" ? "Grupo" : "Contato";
 
-          const status = (data.status || "").trim();
-          if (data.type === "group") {
-            userInfoStatus.textContent = "Conversa em grupo";
-            userInfoStatus.classList.remove("user-info-empty");
+          const status = (data.description || data.status || "").trim();
+          const isGroup = data.type === "group";
 
-            const membersNames = (data.members || [])
+          groupMembersCard.hidden = !isGroup;
+          groupAdminsCard.hidden = !isGroup;
+          groupActionsCard.hidden = !isGroup;
+
+          if (isGroup) {
+            userInfoStatus.textContent = status || "Sem descrição";
+            userInfoStatus.classList.toggle("user-info-empty", !status);
+
+            const memberNames = (data.members || [])
               .map((id) => getUserNameById(id))
               .join(", ");
-            userInfoMembers.textContent = membersNames || "Sem membros";
+            userInfoMembers.textContent = memberNames || "Sem membros";
             userInfoMembers.classList.remove("user-info-empty");
+
+            const adminNames = (data.admins || [])
+              .map((id) => getUserNameById(id))
+              .filter(Boolean);
+
+            userInfoAdmins.innerHTML = adminNames.length
+              ? adminNames
+                  .map(
+                    (name) =>
+                      `<span class="group-admin-chip">${escapeHtml(name)}</span>`,
+                  )
+                  .join("")
+              : `<span class="group-empty-state">Nenhum admin informado.</span>`;
           } else {
             if (status) {
               userInfoStatus.textContent = status;
@@ -2206,6 +3097,7 @@
 
             userInfoMembers.textContent = "—";
             userInfoMembers.classList.add("user-info-empty");
+            userInfoAdmins.innerHTML = "";
           }
         }
 
@@ -2243,6 +3135,22 @@
 
           hangupBtn.style.display = inCall ? "inline-flex" : "none";
           hangupBtn.disabled = !inCall;
+        }
+
+        function updateTabNotification(type) {
+          unreadCounters[type]++;
+
+          if (type === "user") {
+            usersTabBtn.textContent = `Contatos ${
+              unreadCounters.user > 0 ? "(" + unreadCounters.user + ")" : ""
+            }`;
+          }
+
+          if (type === "group") {
+            groupsTabBtn.textContent = `Grupos ${
+              unreadCounters.group > 0 ? "(" + unreadCounters.group + ")" : ""
+            }`;
+          }
         }
 
         function setModalMode(mode) {
@@ -2358,15 +3266,17 @@
 
           if (message.is_audio && message.file_url) {
             return `
-              <div class="message-file">
-                <audio class="message-audio" controls src="${escapeHtml(message.file_url)}"></audio>
-                ${
-                  message.text
-                    ? `<span class="message-text">${escapeHtml(message.text)}</span>`
-                    : ""
-                }
-              </div>
-            `;
+    <div class="audio-player" data-audio="${escapeHtml(message.file_url)}">
+      
+      <button class="audio-play-btn">▶</button>
+
+      <div class="audio-progress">
+        <div class="audio-progress-bar"></div>
+      </div>
+
+      <span class="audio-time">0:00</span>
+    </div>
+  `;
           }
 
           if (message.kind === "file" && message.file_url) {
@@ -3577,6 +4487,7 @@
         function renderMessages(list) {
           messagesDiv.innerHTML = "";
           messagesCache = list.slice();
+          initAudioPlayers();
 
           if (!list.length) {
             messagesDiv.innerHTML = `
@@ -3590,6 +4501,7 @@
 
           list.forEach((msg) => {
             messagesDiv.appendChild(createMessageElement(msg));
+            initAudioPlayers();
           });
 
           scrollMessages();
@@ -3615,6 +4527,262 @@
             const total = (linkData.members || []).length;
             chatPresence.textContent = `${total} membro(s)`;
           }
+        }
+
+        function renderGroupManageMembers(group) {
+          const userMap = getUserDirectoryMap();
+          const membersDetailed = (group.membersDetailed || []).map(
+            (member) => ({
+              ...member,
+              name:
+                member.name ||
+                userMap[member.user_id]?.name ||
+                `Usuário ${member.user_id}`,
+              avatar:
+                member.avatar ||
+                userMap[member.user_id]?.avatar ||
+                "/static/uploads/default.png",
+            }),
+          );
+
+          const memberIds = new Set(
+            membersDetailed.map((member) => Number(member.user_id)),
+          );
+          const allUsers = getAllUsersDirectory().filter(
+            (user) => !memberIds.has(Number(user.id)),
+          );
+
+          groupManageMembersList.innerHTML = membersDetailed.length
+            ? membersDetailed
+                .map(
+                  (member) => `
+                  <div class="group-member-admin-item" data-user-id="${member.user_id}">
+                    <img src="${escapeHtml(member.avatar || "/static/uploads/default.png")}" alt="Avatar" onerror="this.src='/static/uploads/default.png'" />
+                    <div class="group-member-admin-meta">
+                      <div class="group-member-admin-name">${escapeHtml(member.name || `Usuário ${member.user_id}`)}${Number(member.user_id) === Number(userId) ? " (você)" : ""}</div>
+                      <div class="group-member-admin-sub">${escapeHtml(member.status || "Participante")}</div>
+                    </div>
+                    <div class="group-member-admin-actions">
+                      <span class="group-role-badge ${member.role === "admin" ? "" : "member"}">${member.role === "admin" ? "Admin" : "Membro"}</span>
+                      <button
+                        class="group-secondary-btn js-toggle-admin ${member.role === "admin" ? "is-admin-remove" : "is-admin-action"} ${Number(member.user_id) === Number(userId) ? "is-self-lock" : ""}"
+                        type="button"
+                        ${Number(member.user_id) === Number(userId) ? "disabled title='Você não pode alterar o seu próprio cargo de admin.'" : ""}
+                      >
+                        ${member.role === "admin" ? "Remover admin" : "Tornar admin"}
+                      </button>
+                      <button class="group-danger-btn js-remove-member" type="button" ${Number(member.user_id) === Number(userId) ? "disabled title='Você não pode se expulsar do grupo por aqui.'" : ""}>Expulsar</button>
+                    </div>
+                  </div>
+                `,
+                )
+                .join("")
+            : `<div class="group-empty-state">Nenhum participante.</div>`;
+
+          groupManagePickList.innerHTML = allUsers.length
+            ? allUsers
+                .map(
+                  (user) => `
+                  <label class="group-member-pick-item">
+                    <input class="group-member-check js-add-member" type="checkbox" value="${user.id}" />
+                    <img src="${escapeHtml(user.avatar || "/static/uploads/default.png")}" alt="Avatar" onerror="this.src='/static/uploads/default.png'" />
+                    <div class="group-member-pick-meta">
+                      <div class="group-member-pick-name">${escapeHtml(user.name)}</div>
+                      <div class="group-member-pick-sub">${escapeHtml(user.status || "Disponível")}</div>
+                    </div>
+                  </label>
+                `,
+                )
+                .join("")
+            : `<div class="group-empty-state">Todos os contatos já estão no grupo.</div>`;
+
+          groupManageMembersList
+            .querySelectorAll(".js-toggle-admin")
+            .forEach((btn) => {
+              btn.addEventListener("click", () => {
+                const row = btn.closest("[data-user-id]");
+                const memberId = Number(row?.dataset.userId);
+                if (memberId === Number(userId)) {
+                  alert(
+                    "Você não pode alterar o seu próprio cargo de admin por aqui.",
+                  );
+                  return;
+                }
+
+                const target = group.membersDetailed.find(
+                  (item) => Number(item.user_id) === memberId,
+                );
+                if (!target) return;
+
+                const adminsCount = group.membersDetailed.filter(
+                  (item) => item.role === "admin",
+                ).length;
+                if (target.role === "admin" && adminsCount <= 1) {
+                  alert("O grupo precisa ter pelo menos um admin.");
+                  return;
+                }
+
+                target.role = target.role === "admin" ? "member" : "admin";
+                group.admins = group.membersDetailed
+                  .filter((item) => item.role === "admin")
+                  .map((item) => Number(item.user_id));
+                renderGroupManageMembers(group);
+              });
+            });
+
+          groupManageMembersList
+            .querySelectorAll(".js-remove-member")
+            .forEach((btn) => {
+              btn.addEventListener("click", () => {
+                const row = btn.closest("[data-user-id]");
+                const memberId = Number(row?.dataset.userId);
+                if (memberId === Number(userId)) {
+                  alert("Você não pode se remover do grupo por esta tela.");
+                  return;
+                }
+
+                const target = group.membersDetailed.find(
+                  (item) => Number(item.user_id) === memberId,
+                );
+                if (!target) return;
+
+                const adminsCount = group.membersDetailed.filter(
+                  (item) => item.role === "admin",
+                ).length;
+                if (target.role === "admin" && adminsCount <= 1) {
+                  alert(
+                    "Promova outro admin antes de remover o único admin do grupo.",
+                  );
+                  return;
+                }
+
+                group.membersDetailed = group.membersDetailed.filter(
+                  (item) => Number(item.user_id) !== memberId,
+                );
+                group.admins = group.membersDetailed
+                  .filter((item) => item.role === "admin")
+                  .map((item) => Number(item.user_id));
+                renderGroupManageMembers(group);
+              });
+            });
+        }
+
+        async function openGroupManageModal() {
+          if (currentConversationType !== "group" || !currentConversation)
+            return;
+
+          const group = await fetchGroupDetails(currentConversation);
+          groupManageModal.dataset.groupId = String(group.id);
+          groupManageNameInput.value = group.name || "";
+          groupManageDescriptionInput.value = group.description || "";
+          groupManageAvatarPreview.src =
+            group.avatar_url || "/static/uploads/default.png";
+          groupManageAvatarInput.value = "";
+          manageGroupAvatarData = null;
+          manageGroupAvatarRemoved = false;
+
+          renderGroupManageMembers(group);
+
+          groupManageModal.classList.add("show");
+          groupManageModal.setAttribute("aria-hidden", "false");
+          setTimeout(() => groupManageNameInput.focus(), 30);
+        }
+
+        function closeGroupManageModal() {
+          groupManageModal.classList.remove("show");
+          groupManageModal.setAttribute("aria-hidden", "true");
+          groupManageModal.dataset.groupId = "";
+          groupManageForm.reset();
+          groupManageMembersList.innerHTML = "";
+          groupManagePickList.innerHTML = "";
+          manageGroupAvatarData = null;
+          manageGroupAvatarRemoved = false;
+          groupManageAvatarPreview.src = "/static/uploads/default.png";
+        }
+
+        async function saveGroupManageChanges() {
+          const groupId = Number(groupManageModal.dataset.groupId);
+          if (!groupId) return;
+
+          const group = await fetchGroupDetails(groupId);
+          const selectedToAdd = [
+            ...groupManagePickList.querySelectorAll(".js-add-member:checked"),
+          ].map((el) => Number(el.value));
+          const userMap = getUserDirectoryMap();
+          selectedToAdd.forEach((id) => {
+            if (
+              group.membersDetailed.some((item) => Number(item.user_id) === id)
+            )
+              return;
+            group.membersDetailed.push({
+              user_id: id,
+              role: "member",
+              name: userMap[id]?.name || `Usuário ${id}`,
+              avatar: userMap[id]?.avatar || "/static/uploads/default.png",
+              status: userMap[id]?.status || "",
+            });
+          });
+
+          group.name =
+            groupManageNameInput.value.trim() || group.name || "Grupo";
+          group.description = groupManageDescriptionInput.value.trim();
+          if (manageGroupAvatarRemoved) {
+            group.avatar_url = "/static/uploads/default.png";
+          } else if (manageGroupAvatarData) {
+            group.avatar_url = manageGroupAvatarData;
+          }
+
+          const payload = {
+            name: group.name,
+            description: group.description,
+            avatar_data: manageGroupAvatarRemoved
+              ? null
+              : manageGroupAvatarData,
+            remove_avatar: manageGroupAvatarRemoved,
+            members: group.membersDetailed.map((member) => ({
+              user_id: Number(member.user_id),
+              role: member.role === "admin" ? "admin" : "member",
+            })),
+          };
+
+          try {
+            const res = await fetch(`/groups/${groupId}/manage`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+
+            if (!res.ok) {
+              throw new Error("Falha ao salvar grupo.");
+            }
+          } catch (error) {
+            console.warn(
+              "Endpoint /groups/:id/manage não respondeu. Aplicando atualização só na interface.",
+              error,
+            );
+          }
+
+          group.admins = payload.members
+            .filter((member) => member.role === "admin")
+            .map((member) => Number(member.user_id));
+          group.members = payload.members.map((member) =>
+            Number(member.user_id),
+          );
+          groupDetailsCache[groupId] = group;
+          updateGroupLinkDataset(group);
+
+          if (
+            currentConversationType === "group" &&
+            Number(currentConversation) === groupId
+          ) {
+            const linkData = getConversationDataFromLink(
+              getGroupLinkById(groupId),
+            );
+            updateHeaderForConversation(linkData);
+            fillUserInfoPanel(linkData);
+          }
+
+          closeGroupManageModal();
         }
 
         async function openConversation(type, id, name) {
@@ -3650,6 +4818,7 @@
           });
 
           loadUnread();
+          discardRecordedAudio();
           hideTyping();
           openChatMobile();
           updateReturnToCallBar();
@@ -3658,11 +4827,16 @@
         function bindConversationLink(link) {
           link.addEventListener("click", async (e) => {
             e.preventDefault();
-            await openConversation(
-              link.dataset.conversationType,
-              link.dataset.id,
-              link.dataset.name,
-            );
+
+            const type = link.dataset.conversationType;
+            const id = link.dataset.id;
+            const badge = document.getElementById(`badge_${type}_${id}`);
+
+            if (badge) {
+              badge.textContent = "";
+            }
+
+            await openConversation(type, id, link.dataset.name);
           });
         }
 
@@ -3738,6 +4912,7 @@
 
           messagesCache.push(localMessage);
           messagesDiv.appendChild(createMessageElement(localMessage));
+          initAudioPlayers();
           scrollMessages();
           applyConversationSearch();
 
@@ -3835,58 +5010,101 @@
           }
         });
 
+        function resetRecordingUi() {
+          chatInputBar.classList.remove("recording-mode");
+          audioRecorderPanel.classList.remove("show");
+          audioRecorderPreview.hidden = true;
+          audioPreviewPlayer.removeAttribute("src");
+          audioPreviewPlayer.load();
+          audioRecorderLabel.textContent = "Gravando áudio";
+          audioRecorderTimer.textContent = "00:00";
+          stopRecordingBtn.hidden = false;
+          sendRecordingBtn.hidden = true;
+          audioWave.style.display = "inline-flex";
+        }
+
+        function startRecordingTimer() {
+          recordingStartedAt = Date.now();
+          clearInterval(recordingTimerInterval);
+          recordingTimerInterval = setInterval(() => {
+            const seconds = Math.floor(
+              (Date.now() - recordingStartedAt) / 1000,
+            );
+            audioRecorderTimer.textContent = formatDuration(seconds);
+          }, 250);
+        }
+
+        function stopRecordingTimer() {
+          clearInterval(recordingTimerInterval);
+          recordingTimerInterval = null;
+        }
+
+        function cleanupRecordingResources() {
+          if (activeRecordingStream) {
+            activeRecordingStream.getTracks().forEach((track) => track.stop());
+            activeRecordingStream = null;
+          }
+          mediaRecorder = null;
+          recordingChunks = [];
+          isRecording = false;
+          recordBtn.classList.remove("recording");
+          recordBtn.textContent = "🎙️";
+          stopRecordingTimer();
+        }
+
+        function discardRecordedAudio() {
+          cleanupRecordingResources();
+          if (recordedAudioUrl) {
+            URL.revokeObjectURL(recordedAudioUrl);
+            recordedAudioUrl = "";
+          }
+          recordedAudioFile = null;
+          resetRecordingUi();
+        }
+
         async function startRecording() {
           if (isRecording) return;
 
           try {
-            const stream = await navigator.mediaDevices.getUserMedia({
+            activeRecordingStream = await navigator.mediaDevices.getUserMedia({
               audio: true,
             });
             recordingChunks = [];
-            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder = new MediaRecorder(activeRecordingStream);
 
             mediaRecorder.ondataavailable = (event) => {
               if (event.data.size > 0) recordingChunks.push(event.data);
             };
 
-            mediaRecorder.onstop = async () => {
+            mediaRecorder.onstop = () => {
               const blob = new Blob(recordingChunks, { type: "audio/webm" });
-              const file = new File([blob], `audio_${Date.now()}.webm`, {
+              recordedAudioFile = new File([blob], `audio_${Date.now()}.webm`, {
                 type: "audio/webm",
               });
 
-              stream.getTracks().forEach((t) => t.stop());
-
-              try {
-                const form = new FormData();
-                form.append("file", file);
-
-                const res = await fetch("/upload_chat_file", {
-                  method: "POST",
-                  body: form,
-                });
-
-                const data = await res.json();
-                if (!res.ok || !data.ok) {
-                  alert(data.error || "Erro ao enviar áudio.");
-                  return;
-                }
-
-                await sendCurrentMessage({
-                  kind: data.kind,
-                  text: "",
-                  fileData: data,
-                });
-              } catch (e) {
-                console.error(e);
-                alert("Erro ao enviar áudio.");
-              }
+              if (recordedAudioUrl) URL.revokeObjectURL(recordedAudioUrl);
+              recordedAudioUrl = URL.createObjectURL(blob);
+              audioPreviewPlayer.src = recordedAudioUrl;
+              audioRecorderPreview.hidden = false;
+              audioRecorderLabel.textContent = "Pré-visualização do áudio";
+              audioWave.style.display = "none";
+              stopRecordingBtn.hidden = true;
+              sendRecordingBtn.hidden = false;
+              cleanupRecordingResources();
             };
 
             mediaRecorder.start();
             isRecording = true;
             recordBtn.classList.add("recording");
-            recordBtn.textContent = "⏹️";
+            recordBtn.textContent = "⏺️";
+            chatInputBar.classList.add("recording-mode");
+            audioRecorderPanel.classList.add("show");
+            audioRecorderPreview.hidden = true;
+            audioRecorderLabel.textContent = "Gravando áudio";
+            stopRecordingBtn.hidden = false;
+            sendRecordingBtn.hidden = true;
+            audioWave.style.display = "inline-flex";
+            startRecordingTimer();
           } catch (e) {
             console.error(e);
             alert("Não foi possível acessar o microfone.");
@@ -3896,16 +5114,156 @@
         async function stopRecording() {
           if (!isRecording || !mediaRecorder) return;
           mediaRecorder.stop();
-          isRecording = false;
-          recordBtn.classList.remove("recording");
-          recordBtn.textContent = "🎙️";
+        }
+
+        async function sendRecordedAudio() {
+          if (!recordedAudioFile || !currentConversation) return;
+
+          try {
+            const form = new FormData();
+            form.append("file", recordedAudioFile);
+
+            const res = await fetch("/upload_chat_file", {
+              method: "POST",
+              body: form,
+            });
+
+            const data = await res.json();
+            if (!res.ok || !data.ok) {
+              alert(data.error || "Erro ao enviar áudio.");
+              return;
+            }
+
+            await sendCurrentMessage({
+              kind: data.kind,
+              text: "",
+              fileData: data,
+            });
+
+            discardRecordedAudio();
+          } catch (e) {
+            console.error(e);
+            alert("Erro ao enviar áudio.");
+          }
+        }
+
+        function initAudioPlayers() {
+          document.querySelectorAll(".audio-player").forEach((player) => {
+            if (player.dataset.loaded) return;
+            player.dataset.loaded = "true";
+
+            const audio = new Audio(player.dataset.audio);
+            audio.preload = "metadata";
+
+            const btn = player.querySelector(".audio-play-btn");
+            const bar = player.querySelector(".audio-progress-bar");
+            const progress = player.querySelector(".audio-progress");
+            const time = player.querySelector(".audio-time");
+
+            let isPlaying = false;
+            let durationKnown = false;
+
+            function formatAudioTime(seconds) {
+              const safe = Number.isFinite(seconds) ? Math.max(0, seconds) : 0;
+              const min = Math.floor(safe / 60);
+              const sec = Math.floor(safe % 60)
+                .toString()
+                .padStart(2, "0");
+              return `${min}:${sec}`;
+            }
+
+            function updateDisplayedTime() {
+              if (isPlaying) {
+                time.textContent = formatAudioTime(audio.currentTime);
+                return;
+              }
+              time.textContent = durationKnown
+                ? formatAudioTime(audio.duration)
+                : "0:00";
+            }
+
+            audio.addEventListener("loadedmetadata", () => {
+              if (Number.isFinite(audio.duration) && audio.duration > 0) {
+                durationKnown = true;
+                updateDisplayedTime();
+              }
+            });
+
+            btn.addEventListener("click", () => {
+              document.querySelectorAll(".audio-player").forEach((p) => {
+                if (p !== player && p.audioRef) {
+                  p.audioRef.pause();
+                  p.querySelector(".audio-play-btn").textContent = "▶";
+                  p.dataset.playing = "false";
+                  if (typeof p.resetDisplayedTime === "function") {
+                    p.resetDisplayedTime();
+                  }
+                }
+              });
+
+              if (!isPlaying) {
+                audio.play();
+                btn.textContent = "⏸";
+                player.dataset.playing = "true";
+              } else {
+                audio.pause();
+                btn.textContent = "▶";
+                player.dataset.playing = "false";
+              }
+
+              isPlaying = !isPlaying;
+              updateDisplayedTime();
+            });
+
+            audio.addEventListener("timeupdate", () => {
+              const percent = audio.duration
+                ? (audio.currentTime / audio.duration) * 100
+                : 0;
+              bar.style.width = `${percent}%`;
+              updateDisplayedTime();
+            });
+
+            audio.addEventListener("pause", () => {
+              isPlaying = false;
+              btn.textContent = "▶";
+              player.dataset.playing = "false";
+              updateDisplayedTime();
+            });
+
+            audio.addEventListener("ended", () => {
+              isPlaying = false;
+              btn.textContent = "▶";
+              player.dataset.playing = "false";
+              bar.style.width = "0%";
+              audio.currentTime = 0;
+              updateDisplayedTime();
+            });
+
+            progress.addEventListener("click", (e) => {
+              if (!audio.duration) return;
+              const rect = progress.getBoundingClientRect();
+              const x = e.clientX - rect.left;
+              const percent = x / rect.width;
+
+              audio.currentTime = percent * audio.duration;
+              bar.style.width = `${percent * 100}%`;
+              updateDisplayedTime();
+            });
+
+            player.audioRef = audio;
+            player.resetDisplayedTime = updateDisplayedTime;
+            updateDisplayedTime();
+          });
         }
 
         recordBtn.addEventListener("click", async () => {
           if (!currentConversation) return;
-          if (!isRecording) await startRecording();
-          else await stopRecording();
+          if (!isRecording && !recordedAudioFile) await startRecording();
         });
+
+        stopRecordingBtn.addEventListener("click", stopRecording);
+        cancelRecordingBtn.addEventListener("click", discardRecordedAudio);
+        sendRecordingBtn.addEventListener("click", sendRecordedAudio);
 
         socket.on("receive_message", (data) => {
           if (!data) return;
@@ -3940,6 +5298,14 @@
               Number(conversationType === "group" ? targetId : senderId);
 
           if (!isCurrentConversation) {
+            const activeTab = usersTabBtn.classList.contains("active")
+              ? "user"
+              : "group";
+
+            if (conversationType !== activeTab) {
+              incrementTabBadge(conversationType);
+            }
+
             playNotification();
             loadUnread();
             return;
@@ -3947,6 +5313,7 @@
 
           messagesCache.push(data);
           messagesDiv.appendChild(createMessageElement(data));
+          initAudioPlayers();
           scrollMessages();
           applyConversationSearch();
 
@@ -4041,6 +5408,8 @@
 
           const li = document.createElement("li");
           const membersJson = JSON.stringify(group.members || []);
+          const adminsJson = JSON.stringify(group.admins || []);
+          const description = group.description || "";
 
           li.innerHTML = `
             <a
@@ -4050,9 +5419,11 @@
               data-id="${group.id}"
               data-key="group_${group.id}"
               data-name="${escapeHtml(group.name || "Grupo")}"
-              data-status="Grupo"
+              data-status="${escapeHtml(description || "Grupo")}"
+              data-description="${escapeHtml(description)}"
               data-avatar="${group.avatar_url || "/static/uploads/default.png"}"
               data-members='${escapeHtml(membersJson)}'
+              data-admins='${escapeHtml(adminsJson)}'
             >
               <div class="contact-left">
                 <div class="avatar-wrap">
@@ -4082,8 +5453,55 @@
           `;
 
           groupsList.appendChild(li);
+          groupDetailsCache[group.id] = {
+            id: Number(group.id),
+            name: group.name || "Grupo",
+            description: description,
+            avatar_url: group.avatar_url || "/static/uploads/default.png",
+            members: group.members || [],
+            admins: group.admins || [Number(userId)],
+            membersDetailed: (group.membersDetailed || []).length
+              ? group.membersDetailed
+              : (group.members || []).map((memberId) => ({
+                  user_id: Number(memberId),
+                  role: (group.admins || [Number(userId)]).includes(
+                    Number(memberId),
+                  )
+                    ? "admin"
+                    : "member",
+                  name: getUserNameById(memberId),
+                  avatar:
+                    getUserLinkById(memberId)?.dataset.avatar ||
+                    "/static/uploads/default.png",
+                  status: getUserLinkById(memberId)?.dataset.status || "",
+                })),
+          };
           bindConversationLink(li.querySelector(".conversation-link"));
         });
+
+        function refreshTabBadges() {
+          usersTabBtn.textContent =
+            unreadTabCounters.user > 0
+              ? `Contatos (${unreadTabCounters.user})`
+              : "Contatos";
+
+          groupsTabBtn.textContent =
+            unreadTabCounters.group > 0
+              ? `Grupos (${unreadTabCounters.group})`
+              : "Grupos";
+        }
+
+        function incrementTabBadge(type) {
+          if (type !== "user" && type !== "group") return;
+          unreadTabCounters[type] += 1;
+          refreshTabBadges();
+        }
+
+        function clearTabBadge(type) {
+          if (type !== "user" && type !== "group") return;
+          unreadTabCounters[type] = 0;
+          refreshTabBadges();
+        }
 
         async function loadUnread() {
           try {
@@ -4092,14 +5510,25 @@
 
             const data = await res.json();
 
+            unreadTabCounters.user = 0;
+            unreadTabCounters.group = 0;
+
             document
               .querySelectorAll('[id^="badge_user_"], [id^="badge_group_"]')
               .forEach((el) => (el.textContent = ""));
 
-            for (const [key, count] of Object.entries(data || {})) {
+            for (const [key, countValue] of Object.entries(data || {})) {
+              const count = Number(countValue) || 0;
               const badge = document.getElementById(`badge_${key}`);
               if (badge) badge.textContent = count > 0 ? `${count}` : "";
+
+              if (count > 0) {
+                if (key.startsWith("user_")) unreadTabCounters.user += count;
+                if (key.startsWith("group_")) unreadTabCounters.group += count;
+              }
             }
+
+            refreshTabBadges();
           } catch (err) {
             console.error("Erro ao carregar unread:", err);
           }
@@ -4111,6 +5540,7 @@
           groupsTabBtn.classList.toggle("active", !users);
           usersSection.classList.toggle("active", users);
           groupsSection.classList.toggle("active", !users);
+          clearTabBadge(users ? "user" : "group");
         }
 
         usersTabBtn.addEventListener("click", () => setSidebarTab("users"));
@@ -4137,19 +5567,73 @@
           groupModal.classList.remove("show");
           groupModal.setAttribute("aria-hidden", "true");
           groupForm.reset();
+          groupAvatarPreview.src = "/static/uploads/default.png";
+          createGroupAvatarData = null;
         }
 
         newGroupBtn.addEventListener("click", openGroupModal);
         closeGroupModalBtn.addEventListener("click", closeGroupModal);
+        manageGroupBtn.addEventListener("click", openGroupManageModal);
+        closeGroupManageModalBtn.addEventListener(
+          "click",
+          closeGroupManageModal,
+        );
+        cancelGroupManageBtn.addEventListener("click", closeGroupManageModal);
 
         groupModal.addEventListener("click", (e) => {
           if (e.target === groupModal) closeGroupModal();
+        });
+
+        groupManageModal.addEventListener("click", (e) => {
+          if (e.target === groupManageModal) closeGroupManageModal();
+        });
+
+        groupAvatarPickBtn.addEventListener("click", () =>
+          groupAvatarInput.click(),
+        );
+        groupAvatarInput.addEventListener("change", async () => {
+          try {
+            createGroupAvatarData = await handleImagePreview(
+              groupAvatarInput,
+              groupAvatarPreview,
+            );
+          } catch (error) {
+            console.error(error);
+          }
+        });
+
+        groupManageAvatarPickBtn.addEventListener("click", () =>
+          groupManageAvatarInput.click(),
+        );
+        groupManageAvatarInput.addEventListener("change", async () => {
+          try {
+            manageGroupAvatarData = await handleImagePreview(
+              groupManageAvatarInput,
+              groupManageAvatarPreview,
+            );
+            manageGroupAvatarRemoved = false;
+          } catch (error) {
+            console.error(error);
+          }
+        });
+
+        groupManageAvatarRemoveBtn.addEventListener("click", () => {
+          groupManageAvatarRemoved = true;
+          manageGroupAvatarData = null;
+          groupManageAvatarInput.value = "";
+          groupManageAvatarPreview.src = "/static/uploads/default.png";
+        });
+
+        groupManageForm.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          await saveGroupManageChanges();
         });
 
         groupForm.addEventListener("submit", async (e) => {
           e.preventDefault();
 
           const name = groupNameInput.value.trim();
+          const description = groupDescriptionInput.value.trim();
           const memberIds = [
             ...document.querySelectorAll(".group-member-checkbox:checked"),
           ].map((el) => Number(el.value));
@@ -4164,14 +5648,18 @@
             return;
           }
 
+          const payload = {
+            name,
+            description,
+            avatar_data: createGroupAvatarData,
+            member_ids: memberIds,
+          };
+
           try {
             const res = await fetch("/create_group", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                name,
-                member_ids: memberIds,
-              }),
+              body: JSON.stringify(payload),
             });
 
             const data = await res.json();
